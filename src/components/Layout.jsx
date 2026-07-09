@@ -32,7 +32,7 @@ const Layout = ({ children }) => {
       {/* Global Standard Footer Area */}
       <footer style={{ backgroundColor: '#1a1a1a', color: 'white', padding: '40px', textAlign: 'center', fontSize: '14px' }}>
         <p>© 2026 UPNONWOVENS | Krishna Solar Farms Pvt. Ltd. All Rights Reserved.</p>
-        <p style={{ color: '#666', marginTop: '10px' }}>C-1 Industrial Area Growth Center, Jamour, Shahjahanpur, U.P. 242001</p>
+        <p style={{ color: '#666', marginTop: '10px' }}>C-1, Industrial Area Growth Center, Jamour, Shahjahanpur, U.P. 242001</p>
       </footer>
     </div>
   );
