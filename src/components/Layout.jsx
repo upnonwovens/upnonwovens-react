@@ -12,22 +12,33 @@ const Layout = ({ children, currentTab, onTabClick }) => {
     { id: 'contact', label: 'Contact Us' }
   ];
 
-  // Submission handler routing data safely straight to corporate tracking via local window client
+  // WhatsApp API Submission Handler
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    const emailSubject = `KSF Fabric Portal Enquiry from ${formData.name}`;
-    const emailBody = `Enquiry Details:\n-------------------------\nName: ${formData.name}\nPhone: ${formData.phone}\nEmail: ${formData.email}\n\nMessage:\n${formData.message}`;
+    // Target company number format for WhatsApp API
+    const targetWhatsAppNumber = "916306078257";
     
-    // Smoothly pass processing control straight to client mail agent protocol to prevent website bounce
-    window.location.href = `mailto:upnonwovens@gmail.com?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
+    // Construct clean data string for rapid processing
+    const textMessage = `*New KSF Fabric Portal Enquiry*\n` +
+                        `-------------------------\n` +
+                        `• *Name:* ${formData.name}\n` +
+                        `• *Phone:* ${formData.phone}\n` +
+                        `• *Email:* ${formData.email}\n\n` +
+                        `*Message:* ${formData.message}`;
+    
+    // Encode components to strictly match WhatsApp URL API standards
+    const whatsappApiUrl = `https://api.whatsapp.com/send?phone=${targetWhatsAppNumber}&text=${encodeURIComponent(textMessage)}`;
+    
+    // Execute direct API redirection sequence
+    window.open(whatsappApiUrl, '_blank');
     
     setSubmitStatus(true);
     setTimeout(() => {
       setSubmitStatus(false);
       setIsModalOpen(false);
       setFormData({ name: '', phone: '', email: '', message: '' });
-    }, 1500);
+    }, 1000);
   };
 
   return (
@@ -85,7 +96,7 @@ const Layout = ({ children, currentTab, onTabClick }) => {
         {children}
       </main>
 
-      {/* Floating Widget - Configured to launch local modal instead of external web links */}
+      {/* Floating Widget */}
       <div 
         onClick={() => setIsModalOpen(true)}
         style={{
@@ -113,7 +124,7 @@ const Layout = ({ children, currentTab, onTabClick }) => {
         </svg>
       </div>
 
-      {/* Dynamic Native Intake Modal */}
+      {/* API Form Modal Wrapper */}
       {isModalOpen && (
         <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(15,23,42,0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10000, padding: '20px' }}>
           <div style={{ backgroundColor: '#ffffff', width: '100%', maxWidth: '480px', borderRadius: '16px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)', padding: '30px', boxSizing: 'border-box', position: 'relative', border: '1px solid #e2e8f0' }}>
@@ -130,7 +141,7 @@ const Layout = ({ children, currentTab, onTabClick }) => {
 
             {submitStatus ? (
               <div style={{ padding: '30px 10px', textAlign: 'center', backgroundColor: '#f0fdf4', borderRadius: '8px', border: '1px solid #bbf7d0', color: '#166534', fontWeight: '600' }}>
-                Enquiry Routed Successfully!
+                Enquiry Processed via WhatsApp API!
               </div>
             ) : (
               <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -151,7 +162,7 @@ const Layout = ({ children, currentTab, onTabClick }) => {
                   <textarea rows="4" value={formData.message} onChange={(e) => setFormData({...formData, message: e.target.value})} placeholder="Specify GSM range, width constraints or total tonnage target parameters..." required style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px', boxSizing: 'border-box', resize: 'none', fontFamily: 'inherit' }}></textarea>
                 </div>
                 <button type="submit" style={{ backgroundColor: '#2563eb', color: '#ffffff', padding: '12px', borderRadius: '8px', border: 'none', fontWeight: '600', fontSize: '14px', cursor: 'pointer', transition: 'background-color 0.2s', marginTop: '8px' }}>
-                  Transmit Enquiry Stream
+                  Transmit via WhatsApp API
                 </button>
               </form>
             )}
@@ -180,7 +191,7 @@ const Layout = ({ children, currentTab, onTabClick }) => {
             <p style={{ fontSize: '14px', lineHeight: '1.6', margin: 0 }}>
               Krishna Solar Farms Pvt. Ltd.<br />
               C-1, Industrial Area, Growth Center,<br />
-              Jamour, Shahjahanpur - 242001 UP
+              Jamour, Shahjahanpur - 242001 UP[cite: 1]
             </p>
           </div>
         </div>
