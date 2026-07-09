@@ -12,17 +12,15 @@ const Layout = ({ children, currentTab, setCurrentTab }) => {
     <div style={{ fontFamily: 'system-ui, -apple-system, sans-serif', color: '#1a1a1a', backgroundColor: '#f8f9fa', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       {/* Header */}
       <header style={{ backgroundColor: '#ffffff', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', position: 'sticky', top: 0, zIndex: 1000 }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '15px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          {/* Logo Section */}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '12px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          
+          {/* Logo Section - Text removed, graphic sized appropriately large */}
+          <div style={{ display: 'flex', alignItems: 'center' }}>
             <img 
               src="/logo.png" 
-              alt="KSF Non-Woven Fabric Logo" 
-              style={{ height: '50px', width: 'auto', display: 'block' }}
-              onError={(e) => { e.target.style.display = 'none'; }}
+              alt="Krishna Solar Farms - Kanhiya Hosiery Group - Non Woven Fabric" 
+              style={{ height: '70px', width: 'auto', display: 'block', maxWidth: '280px', objectFit: 'contain' }}
             />
-            <span style={{ fontSize: '18px', fontWeight: 'bold', color: '#0f172a', letterSpacing: '0.5px' }}>KSF Non-Woven Fabric</span>
-            <span style={{ fontSize: '11px', color: '#64748b', fontWeight: '500', marginTop: '2px' }}>Inventory Manager</span>
           </div>
 
           {/* Navigation */}
@@ -73,14 +71,14 @@ const Layout = ({ children, currentTab, setCurrentTab }) => {
       <footer style={{ backgroundColor: '#0f172a', color: '#94a3b8', padding: '40px 20px', marginTop: '60px' }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '40px' }}>
           <div>
-            <h3 style={{ color: '#ffffff', fontSize: '16px', marginBottom: '15px' }}>KSF Non-Woven Fabric</h3>
-            <p style={{ fontSize: '14px', lineHeight: '1.6' }}>Advanced technical textile manufacturing specializing in high-performance polypropylene spunbond production solutions.</p>
+            <h3 style={{ color: '#ffffff', fontSize: '16px', marginBottom: '15px' }}>Krishna Solar Farms</h3>
+            <p style={{ fontSize: '14px', lineHeight: '1.6' }}>Kanhiya Hosiery Group — Sustainable technical textile manufacturing specializing in eco-friendly non-woven fabric matrices.</p>
           </div>
           <div>
             <h3 style={{ color: '#ffffff', fontSize: '16px', marginBottom: '15px' }}>Quick Links</h3>
             <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '14px' }}>
               <li><a href="#home" style={{ color: '#94a3b8', textDecoration: 'none' }}>Home</a></li>
-              <li><a href="#products" style={{ color: '#94a3b8', textDecoration: 'none' }}>Products & Calculator</a></li>
+              <li><a href="#products" style={{ color: '#94a3b8', textDecoration: 'none' }}>Products Portfolio</a></li>
               <li><a href="#about" style={{ color: '#94a3b8', textDecoration: 'none' }}>About & Executive Leadership</a></li>
               <li><a href="#contact" style={{ color: '#94a3b8', textDecoration: 'none' }}>Logistics Route</a></li>
             </ul>
@@ -88,13 +86,13 @@ const Layout = ({ children, currentTab, setCurrentTab }) => {
           <div>
             <h3 style={{ color: '#ffffff', fontSize: '16px', marginBottom: '15px' }}>Facility Information</h3>
             <p style={{ fontSize: '14px', lineHeight: '1.6', margin: 0 }}>
-              Corporate Operations Info<br />
               Krishna Solar Farms Pvt. Ltd.<br />
+              Kanhiya Hosiery Group<br />
               Manufacturing Sector, India
             </p>
           </div>
         </div>
-        <div style={{ maxWidth: '1200px', margin: '40px auto 0', paddingBreak: '20px 0 0', borderTop: '1px solid #334155', textAlign: 'center', fontSize: '13px' }}>
+        <div style={{ maxWidth: '1200px', margin: '40px auto 0', padding: '20px 0 0', borderTop: '1px solid #334155', textAlign: 'center', fontSize: '13px' }}>
           © 2026 Krishna Solar Farms Pvt. Ltd. All Rights Reserved.
         </div>
       </footer>

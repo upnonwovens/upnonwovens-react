@@ -1,6 +1,25 @@
 import React from 'react';
 
 const Home = () => {
+  const highlights = [
+    {
+      title: "Eco Friendly",
+      desc: "The fabric disintegrates and decomposes in soil and doesn't harm the environment. It is a recyclable material."
+    },
+    {
+      title: "Non-Woven Fabric",
+      desc: "It can be customized for its properties. For example, it can be made hard to hold heavy items and soft to skin to be wearable."
+    },
+    {
+      title: "Ultra-Violet Repellent",
+      desc: "Extensively used in Agriculture fields to protect the crops from UV degradation."
+    },
+    {
+      title: "Concentrating Solar Power",
+      desc: "We are integrating the heat from the solar system into fabric manufacturing to make it more eco friendly."
+    }
+  ];
+
   return (
     <div>
       {/* Hero Showcase Section */}
@@ -12,6 +31,18 @@ const Home = () => {
           </p>
         </div>
         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#0f172a', opacity: 0.6, zIndex: 1 }}></div>
+      </section>
+
+      {/* Core Attributes Cards */}
+      <section style={{ maxWidth: '1200px', margin: '-40px auto 60px', padding: '0 20px', position: 'relative', zIndex: 3 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '20px' }}>
+          {highlights.map((item, i) => (
+            <div key={i} style={{ backgroundColor: '#ffffff', padding: '25px', borderRadius: '12px', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
+              <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#2563eb', marginBottom: '10px' }}>{item.title}</h3>
+              <p style={{ color: '#475569', fontSize: '14px', lineHeight: '1.6', margin: 0 }}>{item.desc}</p>
+            </div>
+          ))}
+        </div>
       </section>
 
       {/* Industrial Facility Operations Showcase */}
@@ -27,7 +58,6 @@ const Home = () => {
             </p>
           </div>
           <div>
-            {/* Plant Picture Frame Container */}
             <div style={{ backgroundColor: '#e2e8f0', borderRadius: '12px', height: '350px', width: '100%', overflow: 'hidden', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', position: 'relative' }}>
               <img 
                 src="/plant-production.jpg" 
@@ -35,9 +65,6 @@ const Home = () => {
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                 onError={(e) => { e.target.style.display = 'none'; }}
               />
-              <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(15,23,42,0.05)', padding: '20px', textAlign: 'center' }}>
-                <span style={{ color: '#475569', fontWeight: '500', fontSize: '14px' }}>[Plant Infrastructure Photo Frame: Place plant-production.jpg in public folder]</span>
-              </div>
             </div>
           </div>
         </div>
@@ -49,7 +76,6 @@ const Home = () => {
           <h2 style={{ fontSize: '28px', fontWeight: '700', color: '#0f172a', marginBottom: '15px' }}>Take a Look At Our Operations</h2>
           <p style={{ color: '#475569', fontSize: '16px', marginBottom: '30px' }}>Explore a visual tour of our continuous material processing facility running under strict automated quality standards.</p>
           
-          {/* Responsive Video Container */}
           <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0, overflow: 'hidden', borderRadius: '12px', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', backgroundColor: '#000000' }}>
             <iframe
               style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 0 }}
