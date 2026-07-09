@@ -8,7 +8,7 @@ import Contact from './tabs/Contact';
 function App() {
   const [currentTab, setCurrentTab] = useState('home');
 
-  // Simple clean hash router handling
+  // Interactive Hash Router Sync Control
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash.replace('#', '');
@@ -18,7 +18,7 @@ function App() {
     };
 
     window.addEventListener('hashchange', handleHashChange);
-    handleHashChange(); // Run on initial setup mount
+    handleHashChange(); // Execute signature sweep on initial mount
 
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
@@ -33,7 +33,7 @@ function App() {
   };
 
   return (
-    <Layout>
+    <Layout currentTab={currentTab} setCurrentTab={setCurrentTab}>
       {renderTabContent()}
     </Layout>
   );
