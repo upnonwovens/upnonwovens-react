@@ -45,7 +45,7 @@ const Contact = () => {
         <div style={{ backgroundColor: '#ffffff', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px rgba(0,0,0,0.02)', height: '350px' }}>
           <iframe
             title="KSF Manufacturing Facility GPS Location Frame"
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1m4!2s0x0!2s0x0!5m2!1s7substitute_with_actual_coordinates"
+            src="https://maps.app.goo.gl/XjYP7XJLLxgFCDRY6"
             style={{ width: '100%', height: '100%', border: 0, borderRadius: '8px' }}
             allowFullScreen=""
             loading="lazy"
