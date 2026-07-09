@@ -1,29 +1,28 @@
 import React from 'react';
 
-const Layout = ({ children, currentTab, setCurrentTab }) => {
+const Layout = ({ children, currentTab, onTabClick }) => {
   const navItems = [
     { id: 'home', label: 'Home' },
-    { id: 'products', label: 'Our Products' },
     { id: 'about', label: 'About Us' },
+    { id: 'products', label: 'Our Products' },
     { id: 'contact', label: 'Contact Us' }
   ];
 
   return (
     <div style={{ fontFamily: 'system-ui, -apple-system, sans-serif', color: '#1a1a1a', backgroundColor: '#f8f9fa', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      {/* Header */}
+      
+      {/* Sticky Navigation Bar */}
       <header style={{ backgroundColor: '#ffffff', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', position: 'sticky', top: 0, zIndex: 1000 }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '12px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           
-          {/* Logo Section - Text removed, graphic sized appropriately large */}
-          <div style={{ display: 'flex', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={() => onTabClick('home')}>
             <img 
               src="/logo.png" 
-              alt="Krishna Solar Farms - Kanhiya Hosiery Group - Non Woven Fabric" 
+              alt="Krishna Solar Farms Logo" 
               style={{ height: '70px', width: 'auto', display: 'block', maxWidth: '280px', objectFit: 'contain' }}
             />
           </div>
 
-          {/* Navigation */}
           <nav style={{ display: 'flex', gap: '30px' }}>
             {navItems.map((item) => (
               <a
@@ -31,8 +30,7 @@ const Layout = ({ children, currentTab, setCurrentTab }) => {
                 href={`#${item.id}`}
                 onClick={(e) => {
                   e.preventDefault();
-                  setCurrentTab(item.id);
-                  window.location.hash = item.id;
+                  onTabClick(item.id);
                 }}
                 style={{
                   textDecoration: 'none',
@@ -49,11 +47,10 @@ const Layout = ({ children, currentTab, setCurrentTab }) => {
             ))}
           </nav>
 
-          {/* Quick Contact CTA */}
           <div>
             <a 
               href="#contact" 
-              onClick={() => { setCurrentTab('contact'); window.location.hash = 'contact'; }}
+              onClick={(e) => { e.preventDefault(); onTabClick('contact'); }}
               style={{ backgroundColor: '#2563eb', color: '#ffffff', padding: '10px 20px', borderRadius: '6px', textDecoration: 'none', fontWeight: '600', fontSize: '14px', transition: 'background-color 0.2s' }}
             >
               Get In Touch
@@ -62,7 +59,6 @@ const Layout = ({ children, currentTab, setCurrentTab }) => {
         </div>
       </header>
 
-      {/* Main Content Stream */}
       <main style={{ flex: 1 }}>
         {children}
       </main>
@@ -75,20 +71,20 @@ const Layout = ({ children, currentTab, setCurrentTab }) => {
             <p style={{ fontSize: '14px', lineHeight: '1.6' }}>Kanhiya Hosiery Group — Sustainable technical textile manufacturing specializing in eco-friendly non-woven fabric matrices.</p>
           </div>
           <div>
-            <h3 style={{ color: '#ffffff', fontSize: '16px', marginBottom: '15px' }}>Quick Links</h3>
+            <h3 style={{ color: '#ffffff', fontSize: '16px', marginBottom: '15px' }}>Quick Navigation</h3>
             <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '14px' }}>
-              <li><a href="#home" style={{ color: '#94a3b8', textDecoration: 'none' }}>Home</a></li>
-              <li><a href="#products" style={{ color: '#94a3b8', textDecoration: 'none' }}>Products Portfolio</a></li>
-              <li><a href="#about" style={{ color: '#94a3b8', textDecoration: 'none' }}>About & Executive Leadership</a></li>
-              <li><a href="#contact" style={{ color: '#94a3b8', textDecoration: 'none' }}>Logistics Route</a></li>
+              <li><a href="#home" onClick={(e) => { e.preventDefault(); onTabClick('home'); }} style={{ color: '#94a3b8', textDecoration: 'none' }}>Home</a></li>
+              <li><a href="#about" onClick={(e) => { e.preventDefault(); onTabClick('about'); }} style={{ color: '#94a3b8', textDecoration: 'none' }}>About & Executive Leadership</a></li>
+              <li><a href="#products" onClick={(e) => { e.preventDefault(); onTabClick('products'); }} style={{ color: '#94a3b8', textDecoration: 'none' }}>Products Portfolio</a></li>
+              <li><a href="#contact" onClick={(e) => { e.preventDefault(); onTabClick('contact'); }} style={{ color: '#94a3b8', textDecoration: 'none' }}>Logistics Route</a></li>
             </ul>
           </div>
           <div>
             <h3 style={{ color: '#ffffff', fontSize: '16px', marginBottom: '15px' }}>Facility Information</h3>
             <p style={{ fontSize: '14px', lineHeight: '1.6', margin: 0 }}>
               Krishna Solar Farms Pvt. Ltd.<br />
-              Kanhiya Hosiery Group<br />
-              Manufacturing Sector, India
+              C-1, Industrial Area, Growth Center,<br />
+              Jamour, Shahjahanpur - 242001 UP
             </p>
           </div>
         </div>

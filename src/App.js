@@ -1,29 +1,26 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Layout from './components/Layout';
 import Home from './tabs/Home';
-import Products from './tabs/Products';
 import About from './tabs/About';
+import Products from './tabs/Products';
 import Contact from './tabs/Contact';
 
 function App() {
   const [currentTab, setCurrentTab] = useState('home');
 
-  // References to track the location of each section on the continuous page
   const sectionRefs = {
     home: useRef(null),
-    products: useRef(null),
     about: useRef(null),
+    products: useRef(null),
     contact: useRef(null)
   };
 
-  // Click handler to execute a smooth scroll jump to the targeted element coordinate
   const handleTabClick = (tabId) => {
     setCurrentTab(tabId);
     window.location.hash = tabId;
     
     const targetRef = sectionRefs[tabId].current;
     if (targetRef) {
-      // Calculate offset for sticky header height clearance
       const headerOffset = 90;
       const elementPosition = targetRef.getBoundingClientRect().top;
       const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
@@ -35,11 +32,10 @@ function App() {
     }
   };
 
-  // Intersection Observer setup to automatically switch active header states during scrolling
   useEffect(() => {
     const observerOptions = {
-      root: null, // relative to document viewport
-      rootMargin: '-40% 0px -50% 0px', // triggers when section occupies the active view zone
+      root: null,
+      rootMargin: '-40% 0px -50% 0px',
       threshold: 0
     };
 
@@ -53,7 +49,6 @@ function App() {
 
     const observer = new IntersectionObserver(observerCallback, observerOptions);
 
-    // Attach observer to each layout module section
     Object.values(sectionRefs).forEach((ref) => {
       if (ref.current) observer.observe(ref.current);
     });
@@ -72,14 +67,14 @@ function App() {
         <Home />
       </section>
 
-      {/* Products Module */}
-      <section id="products" ref={sectionRefs.products} style={{ paddingTop: '40px' }}>
-        <Products />
-      </section>
-
-      {/* About Us Module */}
+      {/* About Us Module (Moved Up) */}
       <section id="about" ref={sectionRefs.about} style={{ paddingTop: '40px' }}>
         <About />
+      </section>
+
+      {/* Products Module (Moved Down) */}
+      <section id="products" ref={sectionRefs.products} style={{ paddingTop: '40px' }}>
+        <Products />
       </section>
 
       {/* Contact Us Module */}
