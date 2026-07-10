@@ -3,7 +3,7 @@ import React from 'react';
 const Contact = () => {
   // Your updated master management team configuration array
   const managementTeam = [
-    { name: "PRIYA ARYA", role: "VICE PRESIDENT", bio: "Priya Arya serves as Vice President, steering structural corporate planning and strategic business expansion frameworks.", image: "/priya.jpg" },
+    { name: "MRS. PRIYA ARYA", role: "VICE PRESIDENT", bio: "Priya Arya serves as Vice President, steering structural corporate planning and strategic business expansion frameworks.", image: "/priya.jpg" },
     { name: "MR. NAMAN GUPTA", role: "DIRECTOR", bio: "Mr. Naman Gupta, Mechanical Engineering Graduate, San Diego State University, California, USA", image: "/naman.jpg" },
     { name: "MS. SHUBHI GUPTA", role: "CHIEF MARKETING OFFICER", bio: "As the Head of Research and Development, She holds MBA in Marketing from KJ Somaiya Institute of Management, Mumbai..", image: "/shubhi.jpg" },
     { name: "MR. SAILENDRA VERMA", role: "MARKETING MANAGER", bio: "As the Marketing Manager at KSF Nonwoven, Mr. Sailendra Verma brings a wealth of expertise in developing strategic marketing.", image: "/sailendra.jpg" },
