@@ -1,19 +1,20 @@
 import React from 'react';
 
 const Contact = () => {
+  // Your updated master management team configuration array
   const managementTeam = [
-    { name: "PRIYA ARYA", role: "VICE PRESIDENT", bio: "Priya Arya serves as Vice President, steering structural corporate planning and strategic business expansion frameworks.[cite: 1]", image: "/priya.jpg" },
-    { name: "MR. NAMAN GUPTA", role: "DIRECTOR", bio: "Mr. Naman Gupta, Mechanical Engineering Graduate, San Diego State University, California, USA[cite: 1]", image: "/naman.jpg" },
-    { name: "MS. SHUBHI GUPTA", role: "CHIEF MARKETING OFFICER", bio: "As the Head of Research and Development, She holds MBA in Marketing from KJ Somaiya Institute of Management, Mumbai..[cite: 1]", image: "/shubhi.jpg" },
-    { name: "MR. SAILENDRA VERMA", role: "MARKETING MANAGER", bio: "As the Marketing Manager at KSF Nonwoven, Mr. Sailendra Verma brings a wealth of expertise in developing strategic marketing.[cite: 1]", image: "/sailendra.jpg" },
-    { name: "MR. PRASENJIT SARKAR", role: "GENERAL MANAGER", bio: "Mr. Prasenjit Sarkar serves as General Manager, bringing comprehensive technical textiles operational management expertise.[cite: 1]", image: "/prasenjit.jpg" },
-    { name: "MR. PAWAN CHAUBEY", role: "PLANT HEAD", bio: "Mr. Pawan Chaubey serves as Plant Head, bringing extensive experience in manufacturing operations and quality control.[cite: 1]", image: "/pawan.jpg" },
+    { name: "PRIYA ARYA", role: "VICE PRESIDENT", bio: "Priya Arya serves as Vice President, steering structural corporate planning and strategic business expansion frameworks.", image: "/priya.jpg" },
+    { name: "MR. NAMAN GUPTA", role: "DIRECTOR", bio: "Mr. Naman Gupta, Mechanical Engineering Graduate, San Diego State University, California, USA", image: "/naman.jpg" },
+    { name: "MS. SHUBHI GUPTA", role: "CHIEF MARKETING OFFICER", bio: "As the Head of Research and Development, She holds MBA in Marketing from KJ Somaiya Institute of Management, Mumbai..", image: "/shubhi.jpg" },
+    { name: "MR. SAILENDRA VERMA", role: "MARKETING MANAGER", bio: "As the Marketing Manager at KSF Nonwoven, Mr. Sailendra Verma brings a wealth of expertise in developing strategic marketing.", image: "/sailendra.jpg" },
+    { name: "MR. PRASENJIT SARKAR", role: "GENERAL MANAGER", bio: "Mr. Prasenjit Sarkar serves as General Manager, bringing comprehensive technical textiles operational management expertise.", image: "/prasenjit.jpg" },
+    { name: "MR. PAWAN CHAUBEY", role: "PLANT HEAD", bio: "Mr. Pawan Chaubey serves as Plant Head, bringing extensive experience in manufacturing operations and quality control.", image: "/pawan.jpg" },
   ];
 
   return (
     <div style={{ maxWidth: '1200px', margin: '40px auto', padding: '0 20px' }}>
       
-      {/* Leadership Section */}
+      {/* Leadership Section - Displaying your modified roster */}
       <section style={{ marginBottom: '60px', borderBottom: '1px solid #e2e8f0', paddingBottom: '50px' }}>
         <h2 style={{ fontSize: '26px', fontWeight: '700', color: '#0f172a', marginBottom: '40px', textAlign: 'center', letterSpacing: '0.5px' }}>OUR MANAGEMENT TEAM</h2>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '40px', justifyContent: 'center' }}>
@@ -54,7 +55,7 @@ const Contact = () => {
               <p style={{ color: '#475569', fontSize: '15px', lineHeight: '1.6', margin: 0 }}>
                 <strong style={{ color: '#0f172a' }}>Krishna Solar Farms Pvt. Ltd.</strong><br />
                 C-1, Industrial Area, Growth Center,<br />
-                Jamour, Shahjahanpur - 242001 UP[cite: 1]
+                Jamour, Shahjahanpur - 242001 UP
               </p>
             </div>
 
@@ -84,7 +85,7 @@ const Contact = () => {
             
           </div>
 
-          {/* Live Interactive Map Box View - Fixed verified embed endpoint configuration parameters */}
+          {/* Live Interactive Map Box View */}
           <div style={{ backgroundColor: '#ffffff', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px rgba(0,0,0,0.02)', height: '350px' }}>
             <iframe
               title="KSF Manufacturing Facility GPS Location Frame"
