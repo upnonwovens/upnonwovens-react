@@ -7,7 +7,7 @@ const Contact = () => {
     { name: "MS. SHUBHI GUPTA", role: "CHIEF MARKETING OFFICER", bio: "As the Head of Research and Development, She holds MBA in Marketing from KJ Somaiya Institute of Management, Mumbai..[cite: 1]", image: "/shubhi.jpg" },
     { name: "MR. SHAILENDRA VERMA", role: "MARKETING MANAGER", bio: "As the Marketing Manager at KSF Nonwoven, Mr. Shailendra Verma brings a wealth of expertise in developing strategic marketing.[cite: 1]", image: "/shailendra.jpg" },
     { name: "MR. PRASENJIT SARKAR", role: "GENERAL MANAGER", bio: "Mr. Prasenjit Sarkar serves as General Manager, bringing comprehensive technical textiles operational management expertise.[cite: 1]", image: "/prasenjit.jpg" },
-    { name: "MR. Pawan Chaubey", role: "Plant Head", bio: "Mr. Pawan Chaubey serves as Plant Head, bringing extensive experience in manufacturing operations and quality control.[cite: 1]", image: "/pawan.jpg" },
+    { name: "MR. PAWAN CHAUBEY", role: "PLANT HEAD", bio: "Mr. Pawan Chaubey serves as Plant Head, bringing extensive experience in manufacturing operations and quality control.[cite: 1]", image: "/pawan.jpg" },
   ];
 
   return (
