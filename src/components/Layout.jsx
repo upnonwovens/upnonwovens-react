@@ -36,20 +36,20 @@ const Layout = ({ children, currentTab, onTabClick }) => {
   return (
     <div style={{ fontFamily: 'system-ui, -apple-system, sans-serif', color: '#1a1a1a', backgroundColor: '#f8f9fa', minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative' }}>
       
-      {/* Sticky Navigation Bar - Vertical height restricted by minimizing padding */}
-      <header style={{ backgroundColor: '#ffffff', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', position: 'sticky', top: 0, zIndex: 1000 }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '4px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      {/* Sticky Navigation Bar - Vertical height restricted strictly to 64px */}
+      <header style={{ backgroundColor: '#ffffff', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', position: 'sticky', top: 0, zIndex: 1000, height: '64px', display: 'flex', alignItems: 'center' }}>
+        <div style={{ maxWidth: '1200px', width: '100%', margin: '0 auto', padding: '0 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           
-          {/* Logo Brand Frame Wrapper - Large image, tight outer bounds to prevent vertical expansion */}
-          <div style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', padding: '2px 0' }} onClick={() => onTabClick('home')}>
+          {/* Logo Brand Frame Wrapper - Fixed max height restricted to 52px to ensure a slim navigation bar */}
+          <div style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={() => onTabClick('home')}>
             <img 
               src="/logo.png" 
               alt="Krishna Solar Farms Logo" 
-              style={{ height: '110px', width: 'auto', display: 'block', maxWidth: '380px', objectFit: 'contain' }}
+              style={{ height: '52px', width: 'auto', display: 'block', maxWidth: '320px', objectFit: 'contain' }}
             />
           </div>
 
-          {/* Navigation links - Perfectly centered inline with logo */}
+          {/* Navigation links - Vertically centered inline */}
           <nav style={{ display: 'flex', gap: '30px', alignItems: 'center' }}>
             {navItems.map((item) => (
               <a
@@ -64,7 +64,7 @@ const Layout = ({ children, currentTab, onTabClick }) => {
                   color: currentTab === item.id ? '#2563eb' : '#475569',
                   fontWeight: currentTab === item.id ? '600' : '500',
                   fontSize: '15px',
-                  paddingBottom: '5px',
+                  paddingBottom: '2px',
                   borderBottom: currentTab === item.id ? '2px solid #2563eb' : '2px solid transparent',
                   transition: 'all 0.2s ease'
                 }}
@@ -74,12 +74,12 @@ const Layout = ({ children, currentTab, onTabClick }) => {
             ))}
           </nav>
 
-          {/* CTA Button Element - Aligned inline */}
+          {/* CTA Button Element */}
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <a 
               href="#contact" 
               onClick={(e) => { e.preventDefault(); onTabClick('contact'); }}
-              style={{ backgroundColor: '#2563eb', color: '#ffffff', padding: '10px 20px', borderRadius: '6px', textDecoration: 'none', fontWeight: '600', fontSize: '14px', transition: 'background-color 0.2s' }}
+              style={{ backgroundColor: '#2563eb', color: '#ffffff', padding: '8px 16px', borderRadius: '6px', textDecoration: 'none', fontWeight: '600', fontSize: '14px', transition: 'background-color 0.2s' }}
             >
               Get In Touch
             </a>
