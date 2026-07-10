@@ -10,7 +10,6 @@ const Home = () => {
     "/slide4.jpg"
   ];
 
-  // 1. Silent Pre-loading Engine: Forces the browser to cache all images immediately on page load
   useEffect(() => {
     slideImages.forEach((imageSrc) => {
       const img = new Image();
@@ -18,7 +17,6 @@ const Home = () => {
     });
   }, []);
 
-  // 2. Adjusted Rotation Timer: Increased to 6000ms (6 seconds) for smoother reading and loading
   useEffect(() => {
     const slideTimer = setInterval(() => {
       setCurrentSlide((prevIndex) => (prevIndex + 1) % slideImages.length);
@@ -59,7 +57,6 @@ const Home = () => {
           />
         ))}
 
-        {/* High-Contrast Tint Overlay Matrix */}
         <div style={{ 
           position: 'absolute', 
           inset: 0, 
@@ -67,7 +64,6 @@ const Home = () => {
           zIndex: 2 
         }}></div>
 
-        {/* Centered Typography */}
         <div style={{ 
           position: 'absolute', 
           inset: 0, 
@@ -80,8 +76,9 @@ const Home = () => {
           padding: '0 20px',
           marginTop: '40px'
         }}>
+          {/* Fluid Typography using clamp for mobile scaling */}
           <h1 style={{ 
-            fontSize: '52px', 
+            fontSize: 'clamp(32px, 5vw, 52px)', 
             fontWeight: '800', 
             color: '#ffffff', 
             marginBottom: '15px', 
@@ -92,7 +89,7 @@ const Home = () => {
             Shaping Tomorrow With Non-Woven Innovation.
           </h1>
           <p style={{ 
-            fontSize: '18px', 
+            fontSize: 'clamp(14px, 3vw, 18px)', 
             color: '#cbd5e1', 
             letterSpacing: '3px', 
             textTransform: 'uppercase', 
@@ -102,7 +99,6 @@ const Home = () => {
             Weaving The Future
           </p>
 
-          {/* Carousel Manual Position Slide Indicators */}
           <div style={{ display: 'flex', gap: '10px', marginTop: '40px' }}>
             {slideImages.map((_, i) => (
               <div 
@@ -122,11 +118,11 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Core Attributes Cards */}
+      {/* Core Attributes Cards - Mobile-friendly minmax grid */}
       <section style={{ maxWidth: '1200px', margin: '-50px auto 60px', padding: '0 20px', position: 'relative', zIndex: 10 }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '20px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
           {highlights.map((item, i) => (
-            <div key={i} style={{ backgroundColor: '#ffffff', padding: '25px', borderRadius: '12px', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
+            <div key={i} style={{ backgroundColor: 'rgba(255,255,255,0.95)', padding: '25px', borderRadius: '12px', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.05)', border: '1px solid rgba(226, 232, 240, 0.8)' }}>
               <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#2563eb', marginBottom: '10px' }}>{item.title}</h3>
               <p style={{ color: '#475569', fontSize: '14px', lineHeight: '1.6', margin: 0 }}>{item.desc}</p>
             </div>
@@ -134,11 +130,11 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Industrial Facility Operations Showcase */}
+      {/* Industrial Facility Showcase - Mobile Grid Fix */}
       <section style={{ maxWidth: '1200px', margin: '60px auto', padding: '0 20px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))', gap: '40px', alignItems: 'center' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '40px', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.9)', padding: '40px', borderRadius: '16px', border: '1px solid rgba(226, 232, 240, 0.8)', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
           <div>
-            <h2 style={{ fontSize: '28px', fontWeight: '700', color: '#0f172a', marginBottom: '20px' }}>Advanced Plant Production Line</h2>
+            <h2 style={{ fontSize: 'clamp(24px, 4vw, 28px)', fontWeight: '700', color: '#0f172a', marginBottom: '20px' }}>Advanced Plant Production Line</h2>
             <p style={{ color: '#475569', fontSize: '16px', lineHeight: '1.6', marginBottom: '15px' }}>
               Our manufacturing unit features high-precision industrial automation executing specialized thermal bonding and extrusion sequences to generate flawless fabric weights and dimensional consistency.
             </p>
@@ -159,10 +155,10 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Corporate Factory Operational Video Embed */}
-      <section style={{ backgroundColor: '#f1f5f9', padding: '60px 20px' }}>
-        <div style={{ maxWidth: '900px', margin: '0 auto', textAlign: 'center' }}>
-          <h2 style={{ fontSize: '28px', fontWeight: '700', color: '#0f172a', marginBottom: '15px' }}>Take a Look At Our Operations</h2>
+      {/* Video Embed */}
+      <section style={{ padding: '60px 20px' }}>
+        <div style={{ maxWidth: '900px', margin: '0 auto', textAlign: 'center', backgroundColor: 'rgba(255,255,255,0.95)', padding: '40px', borderRadius: '16px', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)' }}>
+          <h2 style={{ fontSize: 'clamp(24px, 4vw, 28px)', fontWeight: '700', color: '#0f172a', marginBottom: '15px' }}>Take a Look At Our Operations</h2>
           <p style={{ color: '#475569', fontSize: '16px', marginBottom: '30px' }}>Explore a visual tour of our continuous material processing facility running under strict automated quality standards.</p>
           
           <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0, overflow: 'hidden', borderRadius: '12px', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', backgroundColor: '#000000' }}>
