@@ -7,13 +7,13 @@ const Contact = () => {
     { name: "MS. SHUBHI GUPTA", role: "HEAD OF R&D", bio: "As the Head of Research and Development, She holds MBA in Marketing from KJ Somaiya Institute of Management, Mumbai..[cite: 1]", image: "/shubhi.jpg" },
     { name: "MR. SHAILENDRA VERMA", role: "MARKETING MANAGER", bio: "As the Marketing Manager at KSF Nonwoven, Mr. Shailendra Verma brings a wealth of expertise in developing strategic marketing.[cite: 1]", image: "/shailendra.jpg" },
     { name: "MR. PRASENJIT SARKAR", role: "GENERAL MANAGER", bio: "Mr. Prasenjit Sarkar serves as General Manager, bringing comprehensive technical textiles operational management expertise.[cite: 1]", image: "/prasenjit.jpg" },
-    { name: "MR. PAWAN CHAUBEY", role: "PLANT HEAD", bio: "Mr. Pawan Chaubey serves as Plant Head, bringing extensive experience in manufacturing operations and quality control.[cite: 1]", image: "/pawan.jpg" },
+    { name: "MR. Pawan Chaubey", role: "Plant Head", bio: "Mr. Pawan Chaubey serves as Plant Head, bringing extensive experience in manufacturing operations and quality control.[cite: 1]", image: "/pawan.jpg" },
   ];
 
   return (
     <div style={{ maxWidth: '1200px', margin: '40px auto', padding: '0 20px' }}>
       
-      {/* Leadership Section - Positioned At the Top of Contact Us */}
+      {/* Leadership Section */}
       <section style={{ marginBottom: '60px', borderBottom: '1px solid #e2e8f0', paddingBottom: '50px' }}>
         <h2 style={{ fontSize: '26px', fontWeight: '700', color: '#0f172a', marginBottom: '40px', textAlign: 'center', letterSpacing: '0.5px' }}>OUR MANAGEMENT TEAM</h2>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '40px', justifyContent: 'center' }}>
@@ -84,11 +84,11 @@ const Contact = () => {
             
           </div>
 
-          {/* Live Interactive Map Box View */}
+          {/* Live Interactive Map Box View - Fixed verified embed endpoint configuration parameters */}
           <div style={{ backgroundColor: '#ffffff', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px rgba(0,0,0,0.02)', height: '350px' }}>
             <iframe
               title="KSF Manufacturing Facility GPS Location Frame"
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1m4!2s0x0!2s0x0!5m2!1s7substitute_with_actual_coordinates"
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3527.794101416892!2d79.8828551!3d27.846153!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x399f979803bba305%3A0xe54df66432f913d3!2sIndustrial%20Area%20Growth%20Centre%2C%20Jamour!5e0!3m2!1sen!2sin!4v1715000000000!5m2!1sen!2sin"
               style={{ width: '100%', height: '100%', border: 0, borderRadius: '8px' }}
               allowFullScreen=""
               loading="lazy"

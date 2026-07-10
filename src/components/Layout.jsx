@@ -12,14 +12,9 @@ const Layout = ({ children, currentTab, onTabClick }) => {
     { id: 'contact', label: 'Contact Us' }
   ];
 
-  // WhatsApp API Submission Handler
   const handleSubmit = (e) => {
     e.preventDefault();
-    
-    // Target company number format for WhatsApp API
     const targetWhatsAppNumber = "916306078257";
-    
-    // Construct clean data string for rapid processing
     const textMessage = `*New KSF Fabric Portal Enquiry*\n` +
                         `-------------------------\n` +
                         `• *Name:* ${formData.name}\n` +
@@ -27,10 +22,7 @@ const Layout = ({ children, currentTab, onTabClick }) => {
                         `• *Email:* ${formData.email}\n\n` +
                         `*Message:* ${formData.message}`;
     
-    // Encode components to strictly match WhatsApp URL API standards
     const whatsappApiUrl = `https://api.whatsapp.com/send?phone=${targetWhatsAppNumber}&text=${encodeURIComponent(textMessage)}`;
-    
-    // Execute direct API redirection sequence
     window.open(whatsappApiUrl, '_blank');
     
     setSubmitStatus(true);
@@ -46,13 +38,14 @@ const Layout = ({ children, currentTab, onTabClick }) => {
       
       {/* Sticky Navigation Bar */}
       <header style={{ backgroundColor: '#ffffff', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', position: 'sticky', top: 0, zIndex: 1000 }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '12px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '15px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           
+          {/* Logo Brand Frame Wrapper - Increased sizing appropriately */}
           <div style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={() => onTabClick('home')}>
             <img 
               src="/logo.png" 
-              alt="Krishna Solar Farms Logo[cite: 1]" 
-              style={{ height: '70px', width: 'auto', display: 'block', maxWidth: '280px', objectFit: 'contain' }}
+              alt="Krishna Solar Farms Logo" 
+              style={{ height: '110px', width: 'auto', display: 'block', maxWidth: '380px', objectFit: 'contain' }}
             />
           </div>
 
@@ -174,7 +167,7 @@ const Layout = ({ children, currentTab, onTabClick }) => {
       <footer style={{ backgroundColor: '#0f172a', color: '#94a3b8', padding: '40px 20px', marginTop: '60px' }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '40px' }}>
           <div>
-            <h3 style={{ color: '#ffffff', fontSize: '16px', marginBottom: '15px' }}>Krishna Solar Farms[cite: 1]</h3>
+            <h3 style={{ color: '#ffffff', fontSize: '16px', marginBottom: '15px' }}>Krishna Solar Farms</h3>
             <p style={{ fontSize: '14px', lineHeight: '1.6' }}>Sustainable technical textile manufacturing specializing in eco-friendly non-woven fabric matrices.</p>
           </div>
           <div>
@@ -191,7 +184,7 @@ const Layout = ({ children, currentTab, onTabClick }) => {
             <p style={{ fontSize: '14px', lineHeight: '1.6', margin: 0 }}>
               Krishna Solar Farms Pvt. Ltd.<br />
               C-1, Industrial Area, Growth Center,<br />
-              Jamour, Shahjahanpur - 242001 UP[cite: 1]
+              Jamour, Shahjahanpur - 242001 UP
             </p>
           </div>
         </div>
