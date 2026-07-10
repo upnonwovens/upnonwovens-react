@@ -4,17 +4,17 @@ const Simulation = () => {
   const [activeStep, setActiveStep] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
 
-  // SVG Flow Coordinates mapped to M1600.jpg
+  // SVG Flow Coordinates precisely mapped to M1600_2.jpg
   const flowPoints = [
-    { x: 49, y: 12 }, // Hopper
-    { x: 38, y: 30 }, // Extruder
-    { x: 36, y: 38 }, // Filter
-    { x: 36, y: 45 }, // Metering Pump
-    { x: 36, y: 55 }, // Die Head
-    { x: 36, y: 68 }, // Quenching Chamber
-    { x: 45, y: 75 }, // Web Forming Belt
-    { x: 55, y: 75 }, // Thermal Bonding Calenders
-    { x: 68, y: 82 }  // Final Winder
+    { x: 47, y: 18 }, // 1. Hopper (Top left)
+    { x: 47, y: 35 }, // 2. Extruder (Dropping into barrel)
+    { x: 68, y: 38 }, // 3. Filter (Moving right across deck)
+    { x: 74, y: 40 }, // 4. Metering Pump (Far right of deck)
+    { x: 74, y: 55 }, // 5. Die Head (Dropping down)
+    { x: 74, y: 68 }, // 6. Quenching Chamber (Dropping further)
+    { x: 55, y: 80 }, // 7. Web Forming Belt (Moving left on bottom)
+    { x: 42, y: 86 }, // 8. Thermal Bonding Calenders (Red rollers)
+    { x: 26, y: 88 }  // 9. Final Winder (Far bottom left)
   ];
 
   const processSteps = [
@@ -40,7 +40,7 @@ const Simulation = () => {
           }
           return prev + 1;
         });
-      }, 4000); // 4 seconds per process step
+      }, 4000);
     }
     return () => clearInterval(interval);
   }, [isPlaying, processSteps.length]);
@@ -70,7 +70,7 @@ const Simulation = () => {
           100% { transform: scale(1); opacity: 0; }
         }
         @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(10px); }
+          from { opacity: 0; transform: translateY(5px); }
           to { opacity: 1; transform: translateY(0); }
         }
       `}</style>
@@ -81,15 +81,15 @@ const Simulation = () => {
         width: '100%', 
         borderRadius: '20px', 
         overflow: 'hidden', 
-        backgroundColor: '#f8fafc', 
+        backgroundColor: '#ffffff', 
         boxShadow: '0 20px 40px rgba(0,0,0,0.1)' 
       }}>
         
-        {/* Base 3D Model Image */}
+        {/* Updated Base 3D Model Image */}
         <img 
-          src="/M1600.jpg" 
+          src="/M1600_2.jpg" 
           alt="3.2m PP Spunbond Manufacturing Line" 
-          style={{ width: '100%', height: 'auto', display: 'block', filter: 'brightness(0.95)' }} 
+          style={{ width: '100%', height: 'auto', display: 'block', filter: 'brightness(1)' }} 
         />
         
         {/* Translucent Energy Flow SVG */}
@@ -102,7 +102,7 @@ const Simulation = () => {
           <path 
             d={`M ${flowPoints.map(p => `${p.x} ${p.y}`).join(' L ')}`} 
             fill="none" 
-            stroke="rgba(255, 255, 255, 0.4)" 
+            stroke="rgba(0, 0, 0, 0.15)" 
             strokeWidth="0.4" 
             strokeLinecap="round" 
             strokeLinejoin="round" 
@@ -112,8 +112,8 @@ const Simulation = () => {
           <path 
             d={getActivePath()} 
             fill="none" 
-            stroke="#38bdf8" 
-            strokeWidth="1.2" 
+            stroke="#2563eb" 
+            strokeWidth="1" 
             strokeLinecap="round" 
             strokeLinejoin="round"
             strokeDasharray="2, 2"
@@ -124,14 +124,14 @@ const Simulation = () => {
           {flowPoints.map((point, index) => (
             index === activeStep && (
               <g key={`node-${index}`}>
-                <circle cx={point.x} cy={point.y} r="1.5" fill="#e11d48" />
+                <circle cx={point.x} cy={point.y} r="1.2" fill="#e11d48" />
                 <circle 
                   cx={point.x} 
                   cy={point.y} 
-                  r="1.5" 
+                  r="1.2" 
                   fill="none" 
                   stroke="#e11d48" 
-                  strokeWidth="0.5"
+                  strokeWidth="0.4"
                   style={{ transformOrigin: `${point.x}px ${point.y}px`, animation: 'nodePulse 1.5s ease-out infinite' }} 
                 />
               </g>
@@ -139,33 +139,27 @@ const Simulation = () => {
           ))}
         </svg>
 
-        {/* Top Right: Dynamic Heads-Up Information Display */}
+        {/* Top Right: Transparent Heads-Up Information Display */}
         <div 
           key={activeStep} 
           style={{ 
             position: 'absolute', 
             top: '40px', 
             right: '40px', 
-            width: 'clamp(280px, 30vw, 420px)', 
-            backgroundColor: 'rgba(255, 255, 255, 0.95)', 
-            backdropFilter: 'blur(12px)', 
-            padding: '30px', 
-            borderRadius: '16px', 
-            boxShadow: '0 15px 35px rgba(0,0,0,0.15)', 
-            border: '1px solid rgba(226, 232, 240, 0.8)', 
+            width: 'clamp(240px, 25vw, 320px)', 
             zIndex: 20,
-            animation: 'fadeIn 0.4s ease-out'
+            animation: 'fadeIn 0.3s ease-out'
           }}
         >
-           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '15px' }}>
-             <div style={{ backgroundColor: '#2563eb', color: '#ffffff', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '15px', fontWeight: '800', flexShrink: 0 }}>
+           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+             <div style={{ backgroundColor: '#2563eb', color: '#ffffff', borderRadius: '50%', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: '800', flexShrink: 0, boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
                {activeStep + 1}
              </div>
-             <h3 style={{ color: '#0f172a', fontSize: '20px', fontWeight: '800', margin: 0, lineHeight: '1.3' }}>
+             <h3 style={{ color: '#0f172a', fontSize: '16px', fontWeight: '800', margin: 0, lineHeight: '1.2', textShadow: '0 2px 5px rgba(255,255,255,0.9), 0 0 15px rgba(255,255,255,1)' }}>
                {processSteps[activeStep].title}
              </h3>
            </div>
-           <p style={{ margin: 0, color: '#475569', fontSize: '15px', lineHeight: '1.7' }}>
+           <p style={{ margin: 0, color: '#334155', fontSize: '13px', lineHeight: '1.6', fontWeight: '600', textShadow: '0 2px 5px rgba(255,255,255,0.9), 0 0 15px rgba(255,255,255,1)' }}>
              {processSteps[activeStep].desc}
            </p>
         </div>
@@ -191,11 +185,11 @@ const Simulation = () => {
               backgroundColor: isPlaying ? '#e11d48' : '#2563eb', 
               color: '#ffffff', 
               border: 'none', 
-              padding: '12px 28px', 
+              padding: '10px 24px', 
               borderRadius: '30px', 
               fontWeight: '700', 
               cursor: 'pointer', 
-              fontSize: '15px', 
+              fontSize: '14px', 
               transition: 'all 0.2s', 
               display: 'flex', 
               alignItems: 'center', 
@@ -210,11 +204,11 @@ const Simulation = () => {
               backgroundColor: 'transparent', 
               color: '#cbd5e1', 
               border: '1px solid rgba(255,255,255,0.3)', 
-              padding: '12px 28px', 
+              padding: '10px 24px', 
               borderRadius: '30px', 
               fontWeight: '700', 
               cursor: 'pointer', 
-              fontSize: '15px', 
+              fontSize: '14px', 
               transition: 'all 0.2s' 
             }}
             onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = '#ffffff'; }}
