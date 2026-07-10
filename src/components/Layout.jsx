@@ -36,7 +36,7 @@ const Layout = ({ children, currentTab, onTabClick }) => {
   return (
     <div style={{ fontFamily: 'system-ui, -apple-system, sans-serif', color: '#1a1a1a', backgroundColor: '#f8f9fa', minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative' }}>
       
-      {/* Tightened White Header - Positioned relative/sticky over content stream */}
+      {/* Header - Stripped of all vertical padding and forced to hug the logo */}
       <header style={{ 
         backgroundColor: '#ffffff', 
         boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
@@ -52,16 +52,15 @@ const Layout = ({ children, currentTab, onTabClick }) => {
       }}>
         <div style={{ maxWidth: '1200px', width: '100%', margin: '0 auto', padding: '0 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           
-          {/* Logo Frame - Increased size, absolute zero vertical margin to prevent stretching the strip */}
+          {/* Logo Frame - Absolute zero margin to prevent any structural stretching */}
           <div style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', margin: 0, padding: 0 }} onClick={() => onTabClick('home')}>
             <img 
               src="/logo.png" 
               alt="Krishna Solar Farms Logo" 
-              style={{ height: '120px', width: 'auto', display: 'block', maxWidth: '360px', objectFit: 'contain', margin: '2px 0' }}
+              style={{ height: '90px', width: 'auto', display: 'block', maxWidth: '360px', objectFit: 'contain', margin: 0, padding: 0 }}
             />
           </div>
 
-          {/* Navigation links - Vertically centered inline with standard high-contrast text layout */}
           <nav style={{ display: 'flex', gap: '30px', alignItems: 'center' }}>
             {navItems.map((item) => (
               <a
@@ -86,7 +85,6 @@ const Layout = ({ children, currentTab, onTabClick }) => {
             ))}
           </nav>
 
-          {/* CTA Button Element */}
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <a 
               href="#contact" 
@@ -99,8 +97,8 @@ const Layout = ({ children, currentTab, onTabClick }) => {
         </div>
       </header>
 
-      {/* Main Content View Frame - Shifted down slightly to account for the larger logo profile */}
-      <main style={{ flex: 1, paddingTop: '124px' }}>
+      {/* Main Content View Frame - Padding dynamically matches the 90px logo height */}
+      <main style={{ flex: 1, paddingTop: '90px' }}>
         {children}
       </main>
 
@@ -155,7 +153,7 @@ const Layout = ({ children, currentTab, onTabClick }) => {
       )}
 
       {/* Footer */}
-      <footer style={{ backgroundColor: '#0f172a', color: '#94a3b8', padding: '40px 20px' }}>
+      <footer style={{ backgroundColor: '#0f172a', color: '#94a3b8', padding: '40px 20px', marginTop: '60px' }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '40px' }}>
           <div>
             <h3 style={{ color: '#ffffff', fontSize: '16px', marginBottom: '15px' }}>Krishna Solar Farms</h3>
@@ -172,10 +170,16 @@ const Layout = ({ children, currentTab, onTabClick }) => {
           </div>
           <div>
             <h3 style={{ color: '#ffffff', fontSize: '16px', marginBottom: '15px' }}>Facility Information</h3>
-            <p style={{ fontSize: '14px', lineHeight: '1.6', margin: 0 }}>Krishna Solar Farms Pvt. Ltd.<br />C-1, Industrial Area, Growth Center,<br />Jamour, Shahjahanpur - 242001 UP[cite: 1]</p>
+            <p style={{ fontSize: '14px', lineHeight: '1.6', margin: 0 }}>
+              Krishna Solar Farms Pvt. Ltd.<br />
+              C-1, Industrial Area, Growth Center,<br />
+              Jamour, Shahjahanpur - 242001 UP
+            </p>
           </div>
         </div>
-        <div style={{ maxWidth: '1200px', margin: '40px auto 0', padding: '20px 0 0', borderTop: '1px solid #334155', textAlign: 'center', fontSize: '13px' }}>© 2026 Krishna Solar Farms Pvt. Ltd. All Rights Reserved.</div>
+        <div style={{ maxWidth: '1200px', margin: '40px auto 0', padding: '20px 0 0', borderTop: '1px solid #334155', textAlign: 'center', fontSize: '13px' }}>
+          © 2026 Krishna Solar Farms Pvt. Ltd. All Rights Reserved.
+        </div>
       </footer>
     </div>
   );

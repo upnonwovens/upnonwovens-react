@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 const Home = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
 
-  // Array containing your 4 public folder image streams
+  // Verifying precise, case-sensitive file targets
   const slideImages = [
     "/slide1.jpg",
     "/slide2.jpg",
@@ -20,10 +20,10 @@ const Home = () => {
   }, [slideImages.length]);
 
   const highlights = [
-    { title: "Eco Friendly", desc: "The fabric disintegrates and decomposes in soil and doesn't harm the environment. It is a recyclable material.[cite: 1]" },
-    { title: "Non-Woven Fabric", desc: "It can be customized for its properties. For example, it can be made hard to hold heavy items and soft to skin to be wearable.[cite: 1]" },
-    { title: "Ultra-Violet Repellent", desc: "Extensively used in Agriculture fields to protect the crops from UV degradation.[cite: 1]" },
-    { title: "Concentrating Solar Power", desc: "We are integrating the heat from the solar system into fabric manufacturing to make it more eco friendly.[cite: 1]" }
+    { title: "Eco Friendly", desc: "The fabric disintegrates and decomposes in soil and doesn't harm the environment. It is a recyclable material." },
+    { title: "Non-Woven Fabric", desc: "It can be customized for its properties. For example, it can be made hard to hold heavy items and soft to skin to be wearable." },
+    { title: "Ultra-Violet Repellent", desc: "Extensively used in Agriculture fields to protect the crops from UV degradation." },
+    { title: "Concentrating Solar Power", desc: "We are integrating the heat from the solar system into fabric manufacturing to make it more eco friendly." }
   ];
 
   return (
@@ -34,7 +34,7 @@ const Home = () => {
         width: '100%', 
         position: 'relative', 
         overflow: 'hidden', 
-        backgroundColor: '#0f172a' 
+        backgroundColor: '#1e293b' // Slate fallback background color
       }}>
         {slideImages.map((imgSrc, index) => (
           <div
@@ -56,7 +56,7 @@ const Home = () => {
         <div style={{ 
           position: 'absolute', 
           inset: 0, 
-          backgroundColor: 'rgba(15, 23, 42, 0.55)', 
+          background: 'linear-gradient(to bottom, rgba(15,23,42,0.6), rgba(15,23,42,0.75))', 
           zIndex: 2 
         }}></div>
 
@@ -133,10 +133,10 @@ const Home = () => {
           <div>
             <h2 style={{ fontSize: '28px', fontWeight: '700', color: '#0f172a', marginBottom: '20px' }}>Advanced Plant Production Line</h2>
             <p style={{ color: '#475569', fontSize: '16px', lineHeight: '1.6', marginBottom: '15px' }}>
-              Our manufacturing unit features high-precision industrial automation executing specialized thermal bonding and extrusion sequences to generate flawless fabric weights and dimensional consistency.[cite: 1]
+              Our manufacturing unit features high-precision industrial automation executing specialized thermal bonding and extrusion sequences to generate flawless fabric weights and dimensional consistency.
             </p>
             <p style={{ color: '#475569', fontSize: '16px', lineHeight: '1.6' }}>
-              With fully integrated Delta PLC systems and responsive dynamic VFD drive synchronizations, we ensure strict quality compliance metrics across every operational manufacturing batch run.[cite: 1]
+              With fully integrated Delta PLC systems and responsive dynamic VFD drive synchronizations, we ensure strict quality compliance metrics across every operational manufacturing batch run.
             </p>
           </div>
           <div>
@@ -160,9 +160,9 @@ const Home = () => {
           
           <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0, overflow: 'hidden', borderRadius: '12px', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', backgroundColor: '#000000' }}>
             <iframe
+              title="KSF Spunbond Fabric Manufacturing Plant Operations"
               style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 0 }}
               src="https://www.youtube.com/embed/2zAmoV0UxiI?si=tXyugcD2ptnu1Aw2"
-              title="KSF Spunbond Fabric Manufacturing Plant Operations"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
             ></iframe>
