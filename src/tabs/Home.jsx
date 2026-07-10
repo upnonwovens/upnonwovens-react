@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 const Home = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
 
-  // Verifying precise, case-sensitive file targets
   const slideImages = [
     "/slide1.jpg",
     "/slide2.jpg",
@@ -11,11 +10,19 @@ const Home = () => {
     "/slide4.jpg"
   ];
 
-  // Automated rotation trigger executing every 4000ms
+  // 1. Silent Pre-loading Engine: Forces the browser to cache all images immediately on page load
+  useEffect(() => {
+    slideImages.forEach((imageSrc) => {
+      const img = new Image();
+      img.src = imageSrc;
+    });
+  }, []);
+
+  // 2. Adjusted Rotation Timer: Increased to 6000ms (6 seconds) for smoother reading and loading
   useEffect(() => {
     const slideTimer = setInterval(() => {
       setCurrentSlide((prevIndex) => (prevIndex + 1) % slideImages.length);
-    }, 4000);
+    }, 6000);
     return () => clearInterval(slideTimer);
   }, [slideImages.length]);
 
@@ -34,7 +41,7 @@ const Home = () => {
         width: '100%', 
         position: 'relative', 
         overflow: 'hidden', 
-        backgroundColor: '#1e293b' // Slate fallback background color
+        backgroundColor: '#1e293b'
       }}>
         {slideImages.map((imgSrc, index) => (
           <div
@@ -60,7 +67,7 @@ const Home = () => {
           zIndex: 2 
         }}></div>
 
-        {/* Centered Typography matching reference site exactly */}
+        {/* Centered Typography */}
         <div style={{ 
           position: 'absolute', 
           inset: 0, 
