@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
 const Layout = ({ children, currentTab, onTabClick }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -10,6 +10,7 @@ const Layout = ({ children, currentTab, onTabClick }) => {
     { id: 'home', label: 'Home' },
     { id: 'about', label: 'About Us' },
     { id: 'products', label: 'Our Products' },
+    { id: 'simulation', label: 'Process Simulation' },
     { id: 'contact', label: 'Contact Us' }
   ];
 
@@ -223,6 +224,7 @@ const Layout = ({ children, currentTab, onTabClick }) => {
               <li><a href="#home" onClick={(e) => { e.preventDefault(); onTabClick('home'); }} style={{ color: '#94a3b8', textDecoration: 'none' }}>Home</a></li>
               <li><a href="#about" onClick={(e) => { e.preventDefault(); onTabClick('about'); }} style={{ color: '#94a3b8', textDecoration: 'none' }}>About & Executive Leadership</a></li>
               <li><a href="#products" onClick={(e) => { e.preventDefault(); onTabClick('products'); }} style={{ color: '#94a3b8', textDecoration: 'none' }}>Products Portfolio</a></li>
+              <li><a href="#simulation" onClick={(e) => { e.preventDefault(); onTabClick('simulation'); }} style={{ color: '#94a3b8', textDecoration: 'none' }}>Process Simulation</a></li>
               <li><a href="#contact" onClick={(e) => { e.preventDefault(); onTabClick('contact'); }} style={{ color: '#94a3b8', textDecoration: 'none' }}>Logistics Route</a></li>
             </ul>
           </div>

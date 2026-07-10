@@ -3,6 +3,7 @@ import Layout from './components/Layout';
 import Home from './tabs/Home';
 import About from './tabs/About';
 import Products from './tabs/Products';
+import Simulation from './tabs/Simulation';
 import Contact from './tabs/Contact';
 
 function App() {
@@ -12,6 +13,7 @@ function App() {
     home: useRef(null),
     about: useRef(null),
     products: useRef(null),
+    simulation: useRef(null),
     contact: useRef(null)
   };
 
@@ -67,14 +69,19 @@ function App() {
         <Home />
       </section>
 
-      {/* About Us Module (Moved Up) */}
+      {/* About Us Module */}
       <section id="about" ref={sectionRefs.about} style={{ paddingTop: '40px' }}>
         <About />
       </section>
 
-      {/* Products Module (Moved Down) */}
+      {/* Products Module */}
       <section id="products" ref={sectionRefs.products} style={{ paddingTop: '40px' }}>
         <Products />
+      </section>
+
+      {/* Simulation Module */}
+      <section id="simulation" ref={sectionRefs.simulation} style={{ paddingTop: '40px' }}>
+        <Simulation />
       </section>
 
       {/* Contact Us Module */}
