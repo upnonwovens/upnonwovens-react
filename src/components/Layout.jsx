@@ -36,7 +36,7 @@ const Layout = ({ children, currentTab, onTabClick }) => {
   };
 
   return (
-    <div style={{ fontFamily: 'system-ui, -apple-system, sans-serif', color: '#1a1a1a', minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+    <div style={{ fontFamily: 'system-ui, -apple-system, sans-serif', color: '#1a1a1a', minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative', overflowX: 'hidden', width: '100%' }}>
       
       {/* Mobile CSS Injection */}
       <style>{`
@@ -89,7 +89,6 @@ const Layout = ({ children, currentTab, onTabClick }) => {
             />
           </div>
 
-          {/* Desktop Nav */}
           <nav className="desktop-nav">
             {navItems.map((item) => (
               <a
@@ -118,13 +117,11 @@ const Layout = ({ children, currentTab, onTabClick }) => {
             </a>
           </nav>
 
-          {/* Mobile Hamburger Toggle */}
           <button className="mobile-toggle" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
             ☰
           </button>
         </div>
 
-        {/* Mobile Dropdown Menu */}
         <nav className={`mobile-nav-menu ${isMobileMenuOpen ? 'open' : ''}`}>
           {navItems.map((item) => (
             <a
@@ -152,14 +149,14 @@ const Layout = ({ children, currentTab, onTabClick }) => {
         </nav>
       </header>
 
-      {/* Main Content View Frame - Featuring Colorful Fixed Parallax Watermark */}
       <main style={{ 
         flex: 1, 
         paddingTop: '90px',
         backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.95)), url('/non-woven-fabric-exports.jpg')`,
         backgroundSize: 'cover',
         backgroundAttachment: 'fixed',
-        backgroundPosition: 'center'
+        backgroundPosition: 'center',
+        width: '100%'
       }}>
         {children}
       </main>
@@ -169,8 +166,8 @@ const Layout = ({ children, currentTab, onTabClick }) => {
         onClick={() => setIsModalOpen(true)}
         style={{
           position: 'fixed',
-          bottom: '30px',
-          right: '30px',
+          bottom: '20px',
+          right: '20px',
           backgroundColor: '#25D366',
           color: '#ffffff',
           borderRadius: '50%',
@@ -189,9 +186,9 @@ const Layout = ({ children, currentTab, onTabClick }) => {
         </svg>
       </div>
 
-      {/* API Form Modal Wrapper */}
+      {/* API Form Modal Wrapper - Mobile Compatibility Fix for Modal placement */}
       {isModalOpen && (
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(15,23,42,0.7)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10000, padding: '20px' }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15,23,42,0.7)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10000, padding: '20px' }}>
           <div style={{ backgroundColor: '#ffffff', width: '100%', maxWidth: '480px', borderRadius: '16px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.2)', padding: '30px', boxSizing: 'border-box', position: 'relative' }}>
             <button onClick={() => setIsModalOpen(false)} style={{ position: 'absolute', top: '20px', right: '20px', background: 'none', border: 'none', color: '#94a3b8', fontSize: '24px', cursor: 'pointer' }}>×</button>
             <h3 style={{ fontSize: '22px', fontWeight: '700', color: '#0f172a', margin: '0 0 8px 0' }}>Quick Enquiry Desk</h3>

@@ -46,7 +46,10 @@ const Home = () => {
             key={index}
             style={{
               position: 'absolute',
-              inset: 0,
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
               backgroundImage: `url(${imgSrc})`,
               backgroundSize: 'cover',
               backgroundPosition: 'center',
@@ -59,14 +62,20 @@ const Home = () => {
 
         <div style={{ 
           position: 'absolute', 
-          inset: 0, 
+          top: 0, 
+          left: 0, 
+          width: '100%', 
+          height: '100%', 
           background: 'linear-gradient(to bottom, rgba(15,23,42,0.6), rgba(15,23,42,0.75))', 
           zIndex: 2 
         }}></div>
 
         <div style={{ 
           position: 'absolute', 
-          inset: 0, 
+          top: 0, 
+          left: 0, 
+          width: '100%', 
+          height: '100%', 
           display: 'flex', 
           flexDirection: 'column', 
           justifyContent: 'center', 
@@ -74,9 +83,9 @@ const Home = () => {
           zIndex: 3, 
           textAlign: 'center', 
           padding: '0 20px',
-          marginTop: '40px'
+          marginTop: '40px',
+          boxSizing: 'border-box'
         }}>
-          {/* Fluid Typography using clamp for mobile scaling */}
           <h1 style={{ 
             fontSize: 'clamp(32px, 5vw, 52px)', 
             fontWeight: '800', 
@@ -96,7 +105,7 @@ const Home = () => {
             fontWeight: '600',
             textShadow: '0 2px 6px rgba(0,0,0,0.4)'
           }}>
-            Bonding The Future
+            Weaving The Future
           </p>
 
           <div style={{ display: 'flex', gap: '10px', marginTop: '40px' }}>
