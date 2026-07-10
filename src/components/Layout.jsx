@@ -36,12 +36,12 @@ const Layout = ({ children, currentTab, onTabClick }) => {
   return (
     <div style={{ fontFamily: 'system-ui, -apple-system, sans-serif', color: '#1a1a1a', backgroundColor: '#f8f9fa', minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative' }}>
       
-      {/* Sticky Navigation Bar */}
+      {/* Sticky Navigation Bar - Vertical height restricted by minimizing padding */}
       <header style={{ backgroundColor: '#ffffff', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', position: 'sticky', top: 0, zIndex: 1000 }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '15px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '4px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           
-          {/* Logo Brand Frame Wrapper - Increased sizing appropriately */}
-          <div style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={() => onTabClick('home')}>
+          {/* Logo Brand Frame Wrapper - Large image, tight outer bounds to prevent vertical expansion */}
+          <div style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', padding: '2px 0' }} onClick={() => onTabClick('home')}>
             <img 
               src="/logo.png" 
               alt="Krishna Solar Farms Logo" 
@@ -49,7 +49,8 @@ const Layout = ({ children, currentTab, onTabClick }) => {
             />
           </div>
 
-          <nav style={{ display: 'flex', gap: '30px' }}>
+          {/* Navigation links - Perfectly centered inline with logo */}
+          <nav style={{ display: 'flex', gap: '30px', alignItems: 'center' }}>
             {navItems.map((item) => (
               <a
                 key={item.id}
@@ -73,7 +74,8 @@ const Layout = ({ children, currentTab, onTabClick }) => {
             ))}
           </nav>
 
-          <div>
+          {/* CTA Button Element - Aligned inline */}
+          <div style={{ display: 'flex', alignItems: 'center' }}>
             <a 
               href="#contact" 
               onClick={(e) => { e.preventDefault(); onTabClick('contact'); }}
