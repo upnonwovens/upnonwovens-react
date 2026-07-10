@@ -4,19 +4,17 @@ const Simulation = () => {
   const [activeStep, setActiveStep] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
 
-  // STEP VISUALIZATION COORDINATES
-  // Adjust these X (left-to-right) and Y (top-to-bottom) percentages (0-100) 
-  // to perfectly align the glowing nodes to your specific M1600.jpg layout.
+  // SVG Flow Coordinates mapped to M1600.jpg
   const flowPoints = [
-    { x: 49, y: 12 }, // 1. Hopper (Top)
-    { x: 38, y: 30 }, // 2. Extruder (Moving down/left)
-    { x: 36, y: 38 }, // 3. Filter
-    { x: 36, y: 45 }, // 4. Metering Pump
-    { x: 36, y: 55 }, // 5. Die Head (Dropping vertically)
-    { x: 36, y: 68 }, // 6. Quenching Chamber (Dropping vertically)
-    { x: 45, y: 75 }, // 7. Web Forming Belt (Moving right)
-    { x: 55, y: 75 }, // 8. Thermal Bonding Calenders
-    { x: 68, y: 82 }  // 9. Final Winder
+    { x: 49, y: 12 }, // Hopper
+    { x: 38, y: 30 }, // Extruder
+    { x: 36, y: 38 }, // Filter
+    { x: 36, y: 45 }, // Metering Pump
+    { x: 36, y: 55 }, // Die Head
+    { x: 36, y: 68 }, // Quenching Chamber
+    { x: 45, y: 75 }, // Web Forming Belt
+    { x: 55, y: 75 }, // Thermal Bonding Calenders
+    { x: 68, y: 82 }  // Final Winder
   ];
 
   const processSteps = [
@@ -42,7 +40,7 @@ const Simulation = () => {
           }
           return prev + 1;
         });
-      }, 3500);
+      }, 4000); // 4 seconds per process step
     }
     return () => clearInterval(interval);
   }, [isPlaying, processSteps.length]);
@@ -52,7 +50,6 @@ const Simulation = () => {
     setActiveStep(0);
   };
 
-  // Helper to generate the exact SVG path up to the current active step
   const getActivePath = () => {
     const activePoints = flowPoints.slice(0, activeStep + 1);
     if (activePoints.length === 0) return "";
@@ -60,9 +57,8 @@ const Simulation = () => {
   };
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '40px auto', padding: '0 20px' }}>
+    <div style={{ width: '100%', maxWidth: '1600px', margin: '40px auto', padding: '0 20px' }}>
       
-      {/* CSS Animation Injection for Flowing Material Effect */}
       <style>{`
         @keyframes flowDash {
           from { stroke-dashoffset: 20; }
@@ -73,153 +69,162 @@ const Simulation = () => {
           50% { transform: scale(2.5); opacity: 0; }
           100% { transform: scale(1); opacity: 0; }
         }
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
       `}</style>
 
-      <section style={{ marginBottom: '60px', paddingBottom: '30px', borderBottom: '1px solid rgba(226, 232, 240, 0.8)' }}>
-        <div style={{ textAlign: 'center', marginBottom: '35px', backgroundColor: 'rgba(255,255,255,0.95)', padding: '30px', borderRadius: '16px', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)', backdropFilter: 'blur(10px)' }}>
-          <h1 style={{ fontSize: 'clamp(26px, 4vw, 32px)', fontWeight: '800', color: '#0f172a', marginBottom: '15px' }}>3.2m PP Spunbond Line Simulation</h1>
-          <p style={{ color: '#475569', fontSize: '16px' }}>Interactive process visualization tracking material flow from raw feeding to final fabric winding.</p>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '40px', alignItems: 'flex-start' }}>
+      {/* Cinematic Full-Width Container */}
+      <div style={{ 
+        position: 'relative', 
+        width: '100%', 
+        borderRadius: '20px', 
+        overflow: 'hidden', 
+        backgroundColor: '#f8fafc', 
+        boxShadow: '0 20px 40px rgba(0,0,0,0.1)' 
+      }}>
+        
+        {/* Base 3D Model Image */}
+        <img 
+          src="/M1600.jpg" 
+          alt="3.2m PP Spunbond Manufacturing Line" 
+          style={{ width: '100%', height: 'auto', display: 'block', filter: 'brightness(0.95)' }} 
+        />
+        
+        {/* Translucent Energy Flow SVG */}
+        <svg 
+          viewBox="0 0 100 100" 
+          preserveAspectRatio="none" 
+          style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 10 }}
+        >
+          {/* Background Track */}
+          <path 
+            d={`M ${flowPoints.map(p => `${p.x} ${p.y}`).join(' L ')}`} 
+            fill="none" 
+            stroke="rgba(255, 255, 255, 0.4)" 
+            strokeWidth="0.4" 
+            strokeLinecap="round" 
+            strokeLinejoin="round" 
+          />
           
-          {/* Left Side: 3D Model Image with Flow Overlay */}
-          <div style={{ position: 'sticky', top: '120px', backgroundColor: 'rgba(255,255,255,0.95)', padding: '20px', borderRadius: '16px', border: '1px solid rgba(226, 232, 240, 0.8)', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)', backdropFilter: 'blur(10px)' }}>
-            <div style={{ borderRadius: '12px', overflow: 'hidden', backgroundColor: '#e2e8f0', position: 'relative' }}>
-              
-              <img 
-                src="/M1600.jpg" 
-                alt="3.2m PP Spunbond Manufacturing Line 3D Model" 
-                style={{ width: '100%', height: 'auto', display: 'block', filter: 'brightness(0.9)' }} 
-              />
-              
-              {/* SVG Overlay: Flowing Material Lines */}
-              <svg 
-                viewBox="0 0 100 100" 
-                preserveAspectRatio="none" 
-                style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 10 }}
-              >
-                {/* Background Track Path */}
-                <path 
-                  d={`M ${flowPoints.map(p => `${p.x} ${p.y}`).join(' L ')}`} 
+          {/* Active Flow Line */}
+          <path 
+            d={getActivePath()} 
+            fill="none" 
+            stroke="#38bdf8" 
+            strokeWidth="1.2" 
+            strokeLinecap="round" 
+            strokeLinejoin="round"
+            strokeDasharray="2, 2"
+            style={{ animation: 'flowDash 1s linear infinite' }}
+          />
+
+          {/* Active Pulsing Node */}
+          {flowPoints.map((point, index) => (
+            index === activeStep && (
+              <g key={`node-${index}`}>
+                <circle cx={point.x} cy={point.y} r="1.5" fill="#e11d48" />
+                <circle 
+                  cx={point.x} 
+                  cy={point.y} 
+                  r="1.5" 
                   fill="none" 
-                  stroke="rgba(255, 255, 255, 0.3)" 
-                  strokeWidth="0.5" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round" 
+                  stroke="#e11d48" 
+                  strokeWidth="0.5"
+                  style={{ transformOrigin: `${point.x}px ${point.y}px`, animation: 'nodePulse 1.5s ease-out infinite' }} 
                 />
-                
-                {/* Active Flowing Material Path */}
-                <path 
-                  d={getActivePath()} 
-                  fill="none" 
-                  stroke="#38bdf8" 
-                  strokeWidth="1.2" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round"
-                  strokeDasharray="2, 2"
-                  style={{ animation: 'flowDash 1s linear infinite' }}
-                />
+              </g>
+            )
+          ))}
+        </svg>
 
-                {/* Active Node Pulsing Effect */}
-                {flowPoints.map((point, index) => (
-                  index === activeStep && (
-                    <g key={`node-${index}`}>
-                      {/* Core Dot */}
-                      <circle cx={point.x} cy={point.y} r="1.5" fill="#e11d48" />
-                      {/* Radar Pulse Effect */}
-                      <circle 
-                        cx={point.x} 
-                        cy={point.y} 
-                        r="1.5" 
-                        fill="none" 
-                        stroke="#e11d48" 
-                        strokeWidth="0.5"
-                        style={{ transformOrigin: `${point.x}px ${point.y}px`, animation: 'nodePulse 1.5s ease-out infinite' }} 
-                      />
-                    </g>
-                  )
-                ))}
-              </svg>
-
-              {/* Status Overlay */}
-              <div style={{ position: 'absolute', top: '20px', left: '20px', backgroundColor: 'rgba(15, 23, 42, 0.85)', color: '#ffffff', padding: '8px 16px', borderRadius: '20px', fontWeight: '700', fontSize: '13px', backdropFilter: 'blur(4px)', border: '1px solid rgba(255,255,255,0.1)', zIndex: 20 }}>
-                <span style={{ color: '#38bdf8', marginRight: '6px' }}>●</span> Stage {activeStep + 1} / 9
-              </div>
-            </div>
-            
-            {/* Controls */}
-            <div style={{ display: 'flex', gap: '15px', marginTop: '20px', justifyContent: 'center' }}>
-              <button 
-                onClick={() => setIsPlaying(!isPlaying)}
-                style={{ backgroundColor: isPlaying ? '#e11d48' : '#2563eb', color: '#ffffff', border: 'none', padding: '12px 24px', borderRadius: '8px', fontWeight: '700', cursor: 'pointer', fontSize: '14px', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 4px 6px rgba(37, 99, 235, 0.2)' }}
-              >
-                {isPlaying ? '⏸ Pause System' : '▶ Run Simulation'}
-              </button>
-              <button 
-                onClick={handleReset}
-                style={{ backgroundColor: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1', padding: '12px 24px', borderRadius: '8px', fontWeight: '700', cursor: 'pointer', fontSize: '14px', transition: 'all 0.2s' }}
-              >
-                Reset
-              </button>
-            </div>
-          </div>
-
-          {/* Right Side: Step-by-Step Interactive Timeline */}
-          <div style={{ backgroundColor: 'rgba(255,255,255,0.95)', padding: '30px', borderRadius: '16px', border: '1px solid rgba(226, 232, 240, 0.8)', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)', backdropFilter: 'blur(10px)' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              {processSteps.map((step, index) => {
-                const isActive = index === activeStep;
-                const isPast = index < activeStep;
-                return (
-                  <div 
-                    key={index} 
-                    onClick={() => { setActiveStep(index); setIsPlaying(false); }}
-                    style={{ 
-                      display: 'flex', 
-                      gap: '20px', 
-                      cursor: 'pointer',
-                      opacity: isActive || isPast ? 1 : 0.4,
-                      transition: 'all 0.3s ease',
-                      transform: isActive ? 'scale(1.02)' : 'scale(1)'
-                    }}
-                  >
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                      <div style={{ 
-                        width: '32px', 
-                        height: '32px', 
-                        borderRadius: '50%', 
-                        backgroundColor: isActive ? '#38bdf8' : (isPast ? '#2563eb' : '#cbd5e1'), 
-                        color: '#ffffff', 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        justifyContent: 'center', 
-                        fontWeight: '700',
-                        fontSize: '14px',
-                        transition: 'background-color 0.3s ease',
-                        boxShadow: isActive ? '0 0 10px rgba(56, 189, 248, 0.5)' : 'none'
-                      }}>
-                        {index + 1}
-                      </div>
-                      {index !== processSteps.length - 1 && (
-                        <div style={{ width: '2px', height: '100%', backgroundColor: isPast ? '#2563eb' : '#e2e8f0', minHeight: '40px', marginTop: '8px', transition: 'background-color 0.3s' }}></div>
-                      )}
-                    </div>
-                    <div style={{ paddingBottom: '20px' }}>
-                      <h3 style={{ margin: '0 0 8px 0', fontSize: '18px', fontWeight: '700', color: isActive ? '#0f172a' : '#334155', transition: 'color 0.3s ease' }}>
-                        {step.title}
-                      </h3>
-                      <p style={{ margin: 0, color: '#475569', fontSize: '14px', lineHeight: '1.6' }}>
-                        {step.desc}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+        {/* Top Right: Dynamic Heads-Up Information Display */}
+        <div 
+          key={activeStep} 
+          style={{ 
+            position: 'absolute', 
+            top: '40px', 
+            right: '40px', 
+            width: 'clamp(280px, 30vw, 420px)', 
+            backgroundColor: 'rgba(255, 255, 255, 0.95)', 
+            backdropFilter: 'blur(12px)', 
+            padding: '30px', 
+            borderRadius: '16px', 
+            boxShadow: '0 15px 35px rgba(0,0,0,0.15)', 
+            border: '1px solid rgba(226, 232, 240, 0.8)', 
+            zIndex: 20,
+            animation: 'fadeIn 0.4s ease-out'
+          }}
+        >
+           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '15px' }}>
+             <div style={{ backgroundColor: '#2563eb', color: '#ffffff', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '15px', fontWeight: '800', flexShrink: 0 }}>
+               {activeStep + 1}
+             </div>
+             <h3 style={{ color: '#0f172a', fontSize: '20px', fontWeight: '800', margin: 0, lineHeight: '1.3' }}>
+               {processSteps[activeStep].title}
+             </h3>
+           </div>
+           <p style={{ margin: 0, color: '#475569', fontSize: '15px', lineHeight: '1.7' }}>
+             {processSteps[activeStep].desc}
+           </p>
         </div>
-      </section>
+
+        {/* Bottom Center: Simulation System Controls */}
+        <div style={{ 
+          position: 'absolute', 
+          bottom: '40px', 
+          left: '50%', 
+          transform: 'translateX(-50%)', 
+          display: 'flex', 
+          gap: '20px', 
+          backgroundColor: 'rgba(15, 23, 42, 0.85)', 
+          padding: '12px 24px', 
+          borderRadius: '50px', 
+          backdropFilter: 'blur(10px)', 
+          zIndex: 20, 
+          boxShadow: '0 10px 30px rgba(0,0,0,0.2)' 
+        }}>
+          <button 
+            onClick={() => setIsPlaying(!isPlaying)}
+            style={{ 
+              backgroundColor: isPlaying ? '#e11d48' : '#2563eb', 
+              color: '#ffffff', 
+              border: 'none', 
+              padding: '12px 28px', 
+              borderRadius: '30px', 
+              fontWeight: '700', 
+              cursor: 'pointer', 
+              fontSize: '15px', 
+              transition: 'all 0.2s', 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '8px' 
+            }}
+          >
+            {isPlaying ? '⏸ Pause System' : '▶ Run Simulation'}
+          </button>
+          <button 
+            onClick={handleReset}
+            style={{ 
+              backgroundColor: 'transparent', 
+              color: '#cbd5e1', 
+              border: '1px solid rgba(255,255,255,0.3)', 
+              padding: '12px 28px', 
+              borderRadius: '30px', 
+              fontWeight: '700', 
+              cursor: 'pointer', 
+              fontSize: '15px', 
+              transition: 'all 0.2s' 
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = '#ffffff'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = '#cbd5e1'; }}
+          >
+            Reset
+          </button>
+        </div>
+
+      </div>
     </div>
   );
 };

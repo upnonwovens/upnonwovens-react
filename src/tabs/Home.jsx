@@ -96,7 +96,7 @@ const Home = () => {
             fontWeight: '600',
             textShadow: '0 2px 6px rgba(0,0,0,0.4)'
           }}>
-            Weaving The Future
+            Bonding The Future
           </p>
 
           <div style={{ display: 'flex', gap: '10px', marginTop: '40px' }}>
