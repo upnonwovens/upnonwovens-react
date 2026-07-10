@@ -36,33 +36,33 @@ const Layout = ({ children, currentTab, onTabClick }) => {
   return (
     <div style={{ fontFamily: 'system-ui, -apple-system, sans-serif', color: '#1a1a1a', backgroundColor: '#f8f9fa', minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative' }}>
       
-      {/* Premium Transparent Floating Header Overlapping Carousel */}
+      {/* Tightened White Header - Positioned relative/sticky over content stream */}
       <header style={{ 
-        backgroundColor: 'rgba(15, 23, 42, 0.45)', 
-        backdropFilter: 'blur(8px)',
+        backgroundColor: '#ffffff', 
+        boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
         position: 'fixed', 
         top: 0, 
         left: 0, 
         right: 0, 
         zIndex: 1000, 
-        height: '80px', 
         display: 'flex', 
         alignItems: 'center',
-        borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
+        padding: 0,
+        margin: 0
       }}>
         <div style={{ maxWidth: '1200px', width: '100%', margin: '0 auto', padding: '0 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           
-          {/* Sized & Highly Visible Logo Frame matching Spunweb profile */}
-          <div style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={() => onTabClick('home')}>
+          {/* Logo Frame - Increased size, absolute zero vertical margin to prevent stretching the strip */}
+          <div style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', margin: 0, padding: 0 }} onClick={() => onTabClick('home')}>
             <img 
               src="/logo.png" 
               alt="Krishna Solar Farms Logo" 
-              style={{ height: '60px', width: 'auto', display: 'block', maxWidth: '340px', objectFit: 'contain' }}
+              style={{ height: '120px', width: 'auto', display: 'block', maxWidth: '360px', objectFit: 'contain', margin: '2px 0' }}
             />
           </div>
 
-          {/* Navigation Links - Set to Crisp High-Visibility White Text */}
-          <nav style={{ display: 'flex', gap: '35px', alignItems: 'center' }}>
+          {/* Navigation links - Vertically centered inline with standard high-contrast text layout */}
+          <nav style={{ display: 'flex', gap: '30px', alignItems: 'center' }}>
             {navItems.map((item) => (
               <a
                 key={item.id}
@@ -73,14 +73,12 @@ const Layout = ({ children, currentTab, onTabClick }) => {
                 }}
                 style={{
                   textDecoration: 'none',
-                  color: currentTab === item.id ? '#38bdf8' : '#ffffff',
-                  fontWeight: '600',
+                  color: currentTab === item.id ? '#2563eb' : '#475569',
+                  fontWeight: currentTab === item.id ? '600' : '500',
                   fontSize: '15px',
-                  letterSpacing: '0.3px',
-                  paddingBottom: '4px',
-                  borderBottom: currentTab === item.id ? '2px solid #38bdf8' : '2px solid transparent',
-                  transition: 'all 0.2s ease',
-                  textShadow: '0 2px 4px rgba(0,0,0,0.3)'
+                  paddingBottom: '2px',
+                  borderBottom: currentTab === item.id ? '2px solid #2563eb' : '2px solid transparent',
+                  transition: 'all 0.2s ease'
                 }}
               >
                 {item.label}
@@ -88,33 +86,21 @@ const Layout = ({ children, currentTab, onTabClick }) => {
             ))}
           </nav>
 
-          {/* Contact CTA Button Element */}
+          {/* CTA Button Element */}
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <a 
               href="#contact" 
               onClick={(e) => { e.preventDefault(); onTabClick('contact'); }}
-              style={{ 
-                backgroundColor: '#e11d48', 
-                color: '#ffffff', 
-                padding: '10px 22px', 
-                borderRadius: '20px', 
-                textDecoration: 'none', 
-                fontWeight: '600', 
-                fontSize: '14px', 
-                transition: 'all 0.2s',
-                boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-              }}
-              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#be123c'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#e11d48'; }}
+              style={{ backgroundColor: '#2563eb', color: '#ffffff', padding: '8px 16px', borderRadius: '6px', textDecoration: 'none', fontWeight: '600', fontSize: '14px', transition: 'background-color 0.2s' }}
             >
-              Contact Us
+              Get In Touch
             </a>
           </div>
         </div>
       </header>
 
-      {/* Primary Layout Frame */}
-      <main style={{ flex: 1 }}>
+      {/* Main Content View Frame - Shifted down slightly to account for the larger logo profile */}
+      <main style={{ flex: 1, paddingTop: '124px' }}>
         {children}
       </main>
 
@@ -146,22 +132,22 @@ const Layout = ({ children, currentTab, onTabClick }) => {
         </svg>
       </div>
 
-      {/* API Form Modal */}
+      {/* API Form Modal Wrapper */}
       {isModalOpen && (
         <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(15,23,42,0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10000, padding: '20px' }}>
-          <div style={{ backgroundColor: '#ffffff', width: '100%', maxWidth: '480px', borderRadius: '16px', padding: '30px', boxSizing: 'border-box', position: 'relative' }}>
+          <div style={{ backgroundColor: '#ffffff', width: '100%', maxWidth: '480px', borderRadius: '16px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)', padding: '30px', boxSizing: 'border-box', position: 'relative', border: '1px solid #e2e8f0' }}>
             <button onClick={() => setIsModalOpen(false)} style={{ position: 'absolute', top: '20px', right: '20px', background: 'none', border: 'none', color: '#94a3b8', fontSize: '24px', cursor: 'pointer' }}>×</button>
             <h3 style={{ fontSize: '22px', fontWeight: '700', color: '#0f172a', margin: '0 0 8px 0' }}>Quick Enquiry Desk</h3>
             <p style={{ color: '#64748b', fontSize: '14px', margin: '0 0 24px 0' }}>Leave your parameters below to route custom textile specifications directly to our desk.</p>
             {submitStatus ? (
-              <div style={{ padding: '20px 10px', textAlign: 'center', backgroundColor: '#f0fdf4', color: '#166534', fontWeight: '600', borderRadius: '8px' }}>Enquiry Processed via WhatsApp API!</div>
+              <div style={{ padding: '30px 10px', textAlign: 'center', backgroundColor: '#f0fdf4', color: '#166534', fontWeight: '600', borderRadius: '8px' }}>Enquiry Processed via WhatsApp API!</div>
             ) : (
               <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <input type="text" placeholder="Full Name" required value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
-                <input type="tel" placeholder="Contact Number" required value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
-                <input type="email" placeholder="Email Address" required value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
-                <textarea rows="4" placeholder="Enquiry Details" required value={formData.message} onChange={(e) => setFormData({...formData, message: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', resize: 'none' }}></textarea>
-                <button type="submit" style={{ backgroundColor: '#2563eb', color: '#ffffff', padding: '12px', borderRadius: '6px', border: 'none', fontWeight: '600', cursor: 'pointer' }}>Transmit via WhatsApp API</button>
+                <input type="text" placeholder="Full Name" required value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }} />
+                <input type="tel" placeholder="Contact Number" required value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }} />
+                <input type="email" placeholder="Email Address" required value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }} />
+                <textarea rows="4" placeholder="Enquiry Details" required value={formData.message} onChange={(e) => setFormData({...formData, message: e.target.value})} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', resize: 'none' }}></textarea>
+                <button type="submit" style={{ backgroundColor: '#2563eb', color: '#ffffff', padding: '12px', borderRadius: '8px', border: 'none', fontWeight: '600', cursor: 'pointer' }}>Transmit via WhatsApp API</button>
               </form>
             )}
           </div>
