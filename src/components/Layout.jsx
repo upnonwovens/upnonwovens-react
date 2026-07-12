@@ -108,13 +108,6 @@ const Layout = ({ children, currentTab, onTabClick }) => {
                 {item.label}
               </a>
             ))}
-            <a 
-              href="#contact" 
-              onClick={(e) => { e.preventDefault(); onTabClick('contact'); }}
-              style={{ backgroundColor: '#2563eb', color: '#ffffff', padding: '8px 20px', borderRadius: '6px', textDecoration: 'none', fontWeight: '600', fontSize: '14px', transition: 'background-color 0.2s' }}
-            >
-              Get In Touch
-            </a>
           </nav>
 
           <button className="mobile-toggle" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
@@ -139,13 +132,6 @@ const Layout = ({ children, currentTab, onTabClick }) => {
               {item.label}
             </a>
           ))}
-          <a 
-            href="#contact" 
-            onClick={(e) => { e.preventDefault(); onTabClick('contact'); setIsMobileMenuOpen(false); }}
-            style={{ backgroundColor: '#2563eb', color: '#ffffff', padding: '12px', borderRadius: '6px', textDecoration: 'none', fontWeight: '600', fontSize: '16px', textAlign: 'center', marginTop: '10px' }}
-          >
-            Get In Touch
-          </a>
         </nav>
       </header>
 
