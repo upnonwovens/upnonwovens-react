@@ -1,6 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 const Products = () => {
+  const [modalImage, setModalImage] = useState(null);
+  const [zoomLevel, setZoomLevel] = useState(1);
+
   const productCategories = [
     {
       id: "medical",
@@ -79,9 +82,42 @@ const Products = () => {
     }
   ];
 
+  const handleOpenModal = (imgSrc, imgTitle) => {
+    setModalImage({ src: imgSrc, title: imgTitle });
+    setZoomLevel(1);
+  };
+
+  const handleCloseModal = () => {
+    setModalImage(null);
+    setZoomLevel(1);
+  };
+
+  const handleZoomIn = () => {
+    setZoomLevel((prev) => Math.min(prev + 0.3, 3)); // Max zoom 3x
+  };
+
+  const handleZoomOut = () => {
+    setZoomLevel((prev) => Math.max(prev - 0.3, 0.5)); // Min zoom 0.5x
+  };
+
+  const handleResetZoom = () => {
+    setZoomLevel(1);
+  };
+
   return (
-    <div style={{ maxWidth: '1200px', margin: '40px auto', padding: '0 20px', boxSizing: 'border-box' }}>
+    <div style={{ maxWidth: '1200px', margin: '40px auto', padding: '0 20px', boxSizing: 'border-box', position: 'relative' }}>
       
+      <style>{`
+        .img-hover-frame:hover .zoom-badge {
+          background-color: #2563eb !important;
+          color: #ffffff !important;
+          transform: scale(1.05);
+        }
+        .img-hover-frame:hover img {
+          transform: scale(1.02);
+        }
+      `}</style>
+
       {/* Section Title Header */}
       <section style={{ marginBottom: '50px', textAlign: 'center' }}>
         <div style={{ backgroundColor: 'rgba(255, 255, 255, 0.95)', padding: '35px 20px', borderRadius: '16px', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)', border: '1px solid rgba(226, 232, 240, 0.8)', backdropFilter: 'blur(10px)' }}>
@@ -165,28 +201,66 @@ const Products = () => {
                   </div>
                 </div>
 
-                {/* Right Column: Product Image Showcase Frame */}
-                <div style={{ 
-                  borderRadius: '12px', 
-                  overflow: 'hidden', 
-                  backgroundColor: '#f1f5f9', 
-                  border: '1px solid #e2e8f0', 
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.05)', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center',
-                  minHeight: '260px',
-                  maxHeight: '400px',
-                  position: 'relative'
-                }}>
+                {/* Right Column: Click-to-Zoom Image Showcase Frame */}
+                <div 
+                  className="img-hover-frame"
+                  onClick={() => handleOpenModal(cat.image, cat.title)}
+                  style={{ 
+                    borderRadius: '12px', 
+                    overflow: 'hidden', 
+                    backgroundColor: '#ffffff', 
+                    border: '1px solid #cbd5e1', 
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.05)', 
+                    display: 'flex', 
+                    flexDirection: 'column',
+                    alignItems: 'center', 
+                    justifyContent: 'center',
+                    minHeight: '280px',
+                    maxHeight: '400px',
+                    position: 'relative',
+                    cursor: 'pointer',
+                    padding: '10px'
+                  }}
+                >
                   <img 
                     src={cat.image} 
                     alt={`${cat.title} Product Showcase`} 
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                    style={{ 
+                      width: '100%', 
+                      height: '100%', 
+                      objectFit: 'contain', // Prevents cropping of text at edges
+                      display: 'block',
+                      transition: 'transform 0.3s ease'
+                    }}
                     onError={(e) => { 
                       e.target.style.display = 'none'; 
                     }}
                   />
+                  
+                  {/* Floating Zoom Indicator Badge */}
+                  <div 
+                    className="zoom-badge"
+                    style={{
+                      position: 'absolute',
+                      bottom: '15px',
+                      right: '15px',
+                      backgroundColor: 'rgba(15, 23, 42, 0.85)',
+                      color: '#cbd5e1',
+                      padding: '8px 14px',
+                      borderRadius: '20px',
+                      fontSize: '12px',
+                      fontWeight: '700',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      backdropFilter: 'blur(4px)',
+                      boxShadow: '0 4px 6px rgba(0,0,0,0.15)',
+                      transition: 'all 0.2s ease',
+                      border: '1px solid rgba(255,255,255,0.1)'
+                    }}
+                  >
+                    <span>🔍 Click to View & Zoom</span>
+                  </div>
                 </div>
 
               </div>
@@ -195,6 +269,107 @@ const Products = () => {
           ))}
         </div>
       </section>
+
+      {/* Full-Screen Lightbox Zoom Modal */}
+      {modalImage && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(15, 23, 42, 0.92)',
+          backdropFilter: 'blur(8px)',
+          zIndex: 100000,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '20px',
+          boxSizing: 'border-box'
+        }}>
+          
+          {/* Top Control Bar */}
+          <div style={{
+            width: '100%',
+            maxWidth: '1000px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '15px',
+            color: '#ffffff',
+            padding: '0 10px',
+            boxSizing: 'border-box'
+          }}>
+            <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: '#f8fafc' }}>
+              {modalImage.title}
+            </h3>
+            
+            {/* Zoom Action Buttons */}
+            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+              <button 
+                onClick={handleZoomOut}
+                disabled={zoomLevel <= 0.5}
+                style={{ backgroundColor: '#334155', color: '#ffffff', border: 'none', width: '36px', height: '36px', borderRadius: '8px', fontWeight: '800', fontSize: '18px', cursor: zoomLevel <= 0.5 ? 'not-allowed' : 'pointer', opacity: zoomLevel <= 0.5 ? 0.5 : 1 }}
+              >
+                −
+              </button>
+              <button 
+                onClick={handleResetZoom}
+                style={{ backgroundColor: '#2563eb', color: '#ffffff', border: 'none', padding: '0 12px', height: '36px', borderRadius: '8px', fontWeight: '700', fontSize: '13px', cursor: 'pointer' }}
+              >
+                {Math.round(zoomLevel * 100)}%
+              </button>
+              <button 
+                onClick={handleZoomIn}
+                disabled={zoomLevel >= 3}
+                style={{ backgroundColor: '#334155', color: '#ffffff', border: 'none', width: '36px', height: '36px', borderRadius: '8px', fontWeight: '800', fontSize: '18px', cursor: zoomLevel >= 3 ? 'not-allowed' : 'pointer', opacity: zoomLevel >= 3 ? 0.5 : 1 }}
+              >
+                +
+              </button>
+              <button 
+                onClick={handleCloseModal}
+                style={{ backgroundColor: '#e11d48', color: '#ffffff', border: 'none', width: '36px', height: '36px', borderRadius: '8px', fontWeight: '800', fontSize: '20px', cursor: 'pointer', marginLeft: '10px', display: 'flex', alignItems: 'center', justify-content: 'center' }}
+              >
+                ×
+              </button>
+            </div>
+          </div>
+
+          {/* Interactive Zoomable Viewport */}
+          <div style={{
+            width: '100%',
+            maxWidth: '1000px',
+            height: '80vh',
+            backgroundColor: 'rgba(0, 0, 0, 0.3)',
+            borderRadius: '16px',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            overflow: 'auto', // Enables scrolling when zoomed inside
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            position: 'relative'
+          }}>
+            <img 
+              src={modalImage.src} 
+              alt={modalImage.title}
+              style={{
+                maxWidth: '100%',
+                maxHeight: '100%',
+                objectFit: 'contain',
+                transform: `scale(${zoomLevel})`,
+                transition: 'transform 0.2s ease-out',
+                transformOrigin: 'center center'
+              }}
+            />
+          </div>
+
+          <p style={{ color: '#94a3b8', fontSize: '13px', marginTop: '12px', marginBottom: 0 }}>
+            Use the + and − buttons above to scale the image, or scroll to pan across zoomed text.
+          </p>
+
+        </div>
+      )}
 
     </div>
   );
