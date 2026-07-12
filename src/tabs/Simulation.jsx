@@ -137,9 +137,16 @@ const Simulation = () => {
         {/* Responsive Image Wrap */}
         <div style={{ position: 'relative', width: '100%', display: 'flex' }}>
           <img 
-            src="/M1600_2.jpg" 
-            alt="3.2m PP Spunbond Manufacturing Line" 
-            style={{ width: '100%', height: 'auto', display: 'block', filter: 'brightness(1)' }} 
+          src="/M1600_2.jpg" 
+          alt="3.2m PP Spunbond Manufacturing Line" 
+          style={{ width: '100%', height: 'auto', display: 'block', cursor: 'crosshair' }} 
+          onClick={(e) => {
+          const rect = e.currentTarget.getBoundingClientRect();
+          const x = Math.round(((e.clientX - rect.left) / rect.width) * 100);
+          const y = Math.round(((e.clientY - rect.top) / rect.height) * 100);
+          console.log(`Clicked Coordinates: { x: ${x}, y: ${y} }`);
+          alert(`New Coordinate: { x: ${x}, y: ${y} }`);
+          }}
           />
           
           {/* Scalable SVG Overlay */}
