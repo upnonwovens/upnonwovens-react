@@ -4,16 +4,17 @@ const Simulation = () => {
   const [activeStep, setActiveStep] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
 
+  // SVG Flow Coordinates precisely calibrated from your click data
   const flowPoints = [
-    { x: 47, y: 18 },
-    { x: 47, y: 35 },
-    { x: 68, y: 38 },
-    { x: 74, y: 40 },
-    { x: 74, y: 55 },
-    { x: 74, y: 68 },
-    { x: 55, y: 80 },
-    { x: 42, y: 86 },
-    { x: 26, y: 88 }
+    { x: 41, y: 8 },  // 1. Hopper
+    { x: 42, y: 30 }, // 2. Extruder
+    { x: 58, y: 30 }, // 3. Filter
+    { x: 67, y: 36 }, // 4. Metering Pump
+    { x: 63, y: 38 }, // 5. Die Head
+    { x: 63, y: 48 }, // 6. Quenching Chamber
+    { x: 63, y: 78 }, // 7. Web Forming Belt
+    { x: 49, y: 80 }, // 8. Thermal Bonding Calenders
+    { x: 26, y: 88 }  // 9. Final Winder
   ];
 
   const processSteps = [
@@ -137,16 +138,9 @@ const Simulation = () => {
         {/* Responsive Image Wrap */}
         <div style={{ position: 'relative', width: '100%', display: 'flex' }}>
           <img 
-          src="/M1600_2.jpg" 
-          alt="3.2m PP Spunbond Manufacturing Line" 
-          style={{ width: '100%', height: 'auto', display: 'block', cursor: 'crosshair' }} 
-          onClick={(e) => {
-          const rect = e.currentTarget.getBoundingClientRect();
-          const x = Math.round(((e.clientX - rect.left) / rect.width) * 100);
-          const y = Math.round(((e.clientY - rect.top) / rect.height) * 100);
-          console.log(`Clicked Coordinates: { x: ${x}, y: ${y} }`);
-          alert(`New Coordinate: { x: ${x}, y: ${y} }`);
-          }}
+            src="/M1600_2.jpg" 
+            alt="3.2m PP Spunbond Manufacturing Line" 
+            style={{ width: '100%', height: 'auto', display: 'block', filter: 'brightness(1)' }} 
           />
           
           {/* Scalable SVG Overlay */}
@@ -155,6 +149,7 @@ const Simulation = () => {
             preserveAspectRatio="none" 
             style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 10 }}
           >
+            {/* Background Track */}
             <path 
               d={`M ${flowPoints.map(p => `${p.x} ${p.y}`).join(' L ')}`} 
               fill="none" 
@@ -164,6 +159,7 @@ const Simulation = () => {
               strokeLinejoin="round" 
             />
             
+            {/* Active Flow Line */}
             <path 
               d={getActivePath()} 
               fill="none" 
@@ -175,6 +171,7 @@ const Simulation = () => {
               style={{ animation: 'flowDash 1s linear infinite' }}
             />
 
+            {/* Active Pulsing Node */}
             {flowPoints.map((point, index) => (
               index === activeStep && (
                 <g key={`node-${index}`}>
