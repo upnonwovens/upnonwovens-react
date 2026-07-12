@@ -2,12 +2,12 @@ import React from 'react';
 
 const About = () => {
   return (
-    <div style={{ maxWidth: '1200px', margin: '40px auto', padding: '0 20px' }}>
+    <div style={{ maxWidth: '1200px', margin: '40px auto', padding: '0 20px', boxSizing: 'border-box' }}>
       
-      {/* About Section */}
-      <section style={{ marginBottom: '60px', paddingBottom: '50px' }}>
+      {/* Corporate Profile Section */}
+      <section style={{ marginBottom: '60px' }}>
         <div style={{ textAlign: 'center', marginBottom: '35px' }}>
-          <h1 style={{ fontSize: '36px', fontWeight: '800', color: '#0f172a', margin: 0 }}>About Us</h1>
+          <h1 style={{ fontSize: 'clamp(28px, 4vw, 36px)', fontWeight: '800', color: '#0f172a', margin: 0 }}>About Us</h1>
         </div>
 
         <div style={{ backgroundColor: 'rgba(255,255,255,0.95)', padding: '35px', borderRadius: '16px', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)', border: '1px solid rgba(226, 232, 240, 0.8)', display: 'flex', flexDirection: 'column', gap: '25px', backdropFilter: 'blur(10px)' }}>
@@ -26,59 +26,46 @@ const About = () => {
         </div>
       </section>
 
-      {/* Technical Module - Responsive minmax(280px) */}
+      {/* Advanced Plant Production Line Section */}
       <section style={{ marginBottom: '60px' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '40px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '40px', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.95)', padding: '40px', borderRadius: '16px', border: '1px solid rgba(226, 232, 240, 0.8)', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)', backdropFilter: 'blur(10px)' }}>
+          <div>
+            <h2 style={{ fontSize: 'clamp(24px, 4vw, 28px)', fontWeight: '700', color: '#0f172a', marginBottom: '20px' }}>Advanced Plant Production Line</h2>
+            <p style={{ color: '#475569', fontSize: '16px', lineHeight: '1.6', marginBottom: '15px' }}>
+              Our manufacturing unit features high-precision industrial automation executing specialized thermal bonding and extrusion sequences to generate flawless fabric weights and dimensional consistency.
+            </p>
+            <p style={{ color: '#475569', fontSize: '16px', lineHeight: '1.6' }}>
+              With fully integrated Delta PLC systems and responsive dynamic VFD drive synchronizations, we ensure strict quality compliance metrics across every operational manufacturing batch run.
+            </p>
+          </div>
+          <div>
+            <div style={{ backgroundColor: '#e2e8f0', borderRadius: '12px', height: '350px', width: '100%', overflow: 'hidden', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
+              <img 
+                src="/plant-production.jpg" 
+                alt="3.2-meter Spunbond Fabric Production Line Infrastructure" 
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                onError={(e) => { e.target.style.display = 'none'; }}
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Take a Look At Our Operations Video Section */}
+      <section style={{ marginBottom: '40px' }}>
+        <div style={{ maxWidth: '900px', margin: '0 auto', textAlign: 'center', backgroundColor: 'rgba(255,255,255,0.95)', padding: '40px', borderRadius: '16px', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)', border: '1px solid rgba(226, 232, 240, 0.8)', backdropFilter: 'blur(10px)' }}>
+          <h2 style={{ fontSize: 'clamp(24px, 4vw, 28px)', fontWeight: '700', color: '#0f172a', marginBottom: '15px' }}>Take a Look At Our Operations</h2>
+          <p style={{ color: '#475569', fontSize: '16px', marginBottom: '30px' }}>Explore a visual tour of our continuous material processing facility running under strict automated quality standards.</p>
           
-          <div style={{ backgroundColor: 'rgba(255,255,255,0.95)', padding: '30px', borderRadius: '12px', border: '1px solid rgba(226, 232, 240, 0.8)', backdropFilter: 'blur(10px)', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)' }}>
-            <h3 style={{ fontSize: '22px', fontWeight: '700', color: '#0f172a', marginBottom: '15px' }}>Non-Woven Fabric Technology</h3>
-            <p style={{ color: '#475569', fontSize: '15px', lineHeight: '1.7', marginBottom: '15px' }}>
-              Non-woven fabric is made from polypropylene (P.P.) which is a by-product of crude oil. P.P. is first melted and converted into long fibers of polypropylene (P.P.) which are then bonded together by chemical, mechanical, heat or solvent treatment.
-            </p>
-            <p style={{ color: '#475569', fontSize: '15px', lineHeight: '1.7', marginBottom: '25px' }}>
-              Our non-woven fabric is made by spun bonding (heat treatment) polypropylene which can be recycled, naturally decompose and completely incinerates without any production of poisonous pollutant.
-            </p>
-
-            <h4 style={{ fontSize: '16px', fontWeight: '700', color: '#0f172a', marginBottom: '12px' }}>Characteristics & Properties</h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              <div style={{ backgroundColor: 'rgba(248, 249, 250, 0.9)', padding: '20px', borderRadius: '8px', borderLeft: '4px solid #2563eb' }}>
-                <p style={{ color: '#334155', fontSize: '14px', lineHeight: '1.6', margin: '0 0 10px 0', fontWeight: '500' }}>
-                  Non-woven fabrics provide specific functions such as absorbency, liquid repellency, resilience, stretch, softness, strength, flame retardancy, washability, cushioning, filtering, bacterial barrier and sterility.
-                </p>
-                <p style={{ color: '#64748b', fontSize: '13px', lineHeight: '1.6', margin: 0, fontStyle: 'italic', borderTop: '1px dashed #e2e8f0', paddingTop: '10px' }}>
-                  (ये कपड़े विशिष्ट कार्य प्रदान करते हैं जैसे कि अवशोषकता, तरल पुनर्विक्रय, लचीलापन, खिंचाव, कोमलता, शक्ति, लौ मंदता, धोने की क्षमता, कुशनिंग, फ़िल्टरिंग, जीवाणु अवरोध और सड़न रोकनेवाला ।)
-                </p>
-              </div>
-
-              <div style={{ backgroundColor: 'rgba(248, 249, 250, 0.9)', padding: '20px', borderRadius: '8px', borderLeft: '4px solid #2563eb' }}>
-                <p style={{ color: '#334155', fontSize: '14px', lineHeight: '1.6', margin: '0 0 10px 0', fontWeight: '500' }}>
-                  These properties are often combined to create fabrics suited for specific jobs, while achieving a good balance between product use-life and cost.
-                </p>
-                <p style={{ color: '#64748b', fontSize: '13px', lineHeight: '1.6', margin: 0, fontStyle: 'italic', borderTop: '1px dashed #e2e8f0', paddingTop: '10px' }}>
-                  (उत्पाद के उपयोग-जीवन और लागत के बीच एक अच्छा संतुलन प्राप्त करते हुए, इन गुणों को अक्सर विशिष्ट उपयोगों के अनुकूल कपड़े बनाने के लिए जोड़ा जाता है।)
-                </p>
-              </div>
-            </div>
+          <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0, overflow: 'hidden', borderRadius: '12px', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', backgroundColor: '#000000' }}>
+            <iframe
+              title="KSF Spunbond Fabric Manufacturing Plant Operations"
+              style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 0 }}
+              src="https://www.youtube.com/embed/2zAmoV0UxiI?si=tXyugcD2ptnu1Aw2"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            ></iframe>
           </div>
-
-          <div style={{ backgroundColor: 'rgba(255,255,255,0.95)', padding: '30px', borderRadius: '12px', border: '1px solid rgba(226, 232, 240, 0.8)', backdropFilter: 'blur(10px)', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)' }}>
-            <h3 style={{ fontSize: '22px', fontWeight: '700', color: '#15803d', marginBottom: '15px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#16a34a' }}></span>
-              Eco Friendly and Sustainable
-            </h3>
-            <p style={{ color: '#475569', fontSize: '15px', lineHeight: '1.7', marginBottom: '15px' }}>
-              We use solar energy for the heat treatment of the polypropylene (P.P.) to make long fibers and then again use solar energy for the spun bonding process to convert the fibers into fabric. The solar technology used in this process is called concentrating solar thermal power.
-            </p>
-            <div style={{ backgroundColor: 'rgba(240, 253, 244, 0.9)', padding: '20px', borderRadius: '8px', border: '1px solid #bbf7d0', marginBottom: '25px' }}>
-              <p style={{ color: '#166534', fontSize: '14px', lineHeight: '1.7', margin: 0, fontStyle: 'italic' }}>
-                हम लंबे फाइबर बनाने के लिए पॉलीप्रोपाइलीन (पीपी) के ताप उपचार के लिए सौर ऊर्जा का उपयोग करते हैं और फिर फाइबर को कपड़े में बदलने के लिए स्पून बॉन्डिंग प्रक्रिया के लिए फिर से सौर ऊर्जा का उपयोग करते हैं।
-              </p>
-            </div>
-            <p style={{ color: '#64748b', fontSize: '14px', lineHeight: '1.7', margin: 0 }}>
-              In combination with other materials they provide a spectrum of products with diverse properties, and are used alone or as components of apparel, home furnishings, health care, engineering, industrial and consumer goods.
-            </p>
-          </div>
-
         </div>
       </section>
 

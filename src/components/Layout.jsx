@@ -7,8 +7,8 @@ const Layout = ({ children, currentTab, onTabClick }) => {
   const [submitStatus, setSubmitStatus] = useState(false);
 
   const navItems = [
-    { id: 'home', label: 'Home' },
     { id: 'about', label: 'About Us' },
+    { id: 'technology', label: 'Technology' },
     { id: 'products', label: 'Our Products' },
     { id: 'simulation', label: 'Process Simulation' },
     { id: 'contact', label: 'Contact Us' }
@@ -172,7 +172,7 @@ const Layout = ({ children, currentTab, onTabClick }) => {
         </svg>
       </div>
 
-      {/* API Form Modal Wrapper - Mobile Compatibility Fix for Modal placement */}
+      {/* API Form Modal Wrapper */}
       {isModalOpen && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15,23,42,0.7)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10000, padding: '20px' }}>
           <div style={{ backgroundColor: '#ffffff', width: '100%', maxWidth: '480px', borderRadius: '16px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.2)', padding: '30px', boxSizing: 'border-box', position: 'relative' }}>
@@ -204,8 +204,8 @@ const Layout = ({ children, currentTab, onTabClick }) => {
           <div>
             <h3 style={{ color: '#ffffff', fontSize: '18px', marginBottom: '15px' }}>Quick Navigation</h3>
             <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '14px' }}>
-              <li><a href="#home" onClick={(e) => { e.preventDefault(); onTabClick('home'); }} style={{ color: '#94a3b8', textDecoration: 'none' }}>Home</a></li>
-              <li><a href="#about" onClick={(e) => { e.preventDefault(); onTabClick('about'); }} style={{ color: '#94a3b8', textDecoration: 'none' }}>About & Executive Leadership</a></li>
+              <li><a href="#about" onClick={(e) => { e.preventDefault(); onTabClick('about'); }} style={{ color: '#94a3b8', textDecoration: 'none' }}>About Us</a></li>
+              <li><a href="#technology" onClick={(e) => { e.preventDefault(); onTabClick('technology'); }} style={{ color: '#94a3b8', textDecoration: 'none' }}>Technology</a></li>
               <li><a href="#products" onClick={(e) => { e.preventDefault(); onTabClick('products'); }} style={{ color: '#94a3b8', textDecoration: 'none' }}>Products Portfolio</a></li>
               <li><a href="#simulation" onClick={(e) => { e.preventDefault(); onTabClick('simulation'); }} style={{ color: '#94a3b8', textDecoration: 'none' }}>Process Simulation</a></li>
               <li><a href="#contact" onClick={(e) => { e.preventDefault(); onTabClick('contact'); }} style={{ color: '#94a3b8', textDecoration: 'none' }}>Logistics Route</a></li>

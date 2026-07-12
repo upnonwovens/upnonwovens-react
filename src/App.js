@@ -2,16 +2,18 @@ import React, { useState, useEffect, useRef } from 'react';
 import Layout from './components/Layout';
 import Home from './tabs/Home';
 import About from './tabs/About';
+import Technology from './tabs/Technology';
 import Products from './tabs/Products';
 import Simulation from './tabs/Simulation';
 import Contact from './tabs/Contact';
 
 function App() {
-  const [currentTab, setCurrentTab] = useState('home');
+  const [currentTab, setCurrentTab] = useState('about');
 
   const sectionRefs = {
     home: useRef(null),
     about: useRef(null),
+    technology: useRef(null),
     products: useRef(null),
     simulation: useRef(null),
     contact: useRef(null)
@@ -64,7 +66,7 @@ function App() {
 
   return (
     <Layout currentTab={currentTab} onTabClick={handleTabClick}>
-      {/* Home Module */}
+      {/* Home Module (Hero Carousel Only) */}
       <section id="home" ref={sectionRefs.home}>
         <Home />
       </section>
@@ -72,6 +74,11 @@ function App() {
       {/* About Us Module */}
       <section id="about" ref={sectionRefs.about} style={{ paddingTop: '40px' }}>
         <About />
+      </section>
+
+      {/* Technology Module */}
+      <section id="technology" ref={sectionRefs.technology} style={{ paddingTop: '40px' }}>
+        <Technology />
       </section>
 
       {/* Products Module */}
