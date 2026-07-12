@@ -6,11 +6,12 @@ const Layout = ({ children, currentTab, onTabClick }) => {
   const [formData, setFormData] = useState({ name: '', phone: '', email: '', message: '' });
   const [submitStatus, setSubmitStatus] = useState(false);
 
+  // Updated Navigation Order: Simulation moved before Products
   const navItems = [
     { id: 'about', label: 'About Us' },
     { id: 'technology', label: 'Technology' },
-    { id: 'products', label: 'Our Products' },
     { id: 'simulation', label: 'Process Simulation' },
+    { id: 'products', label: 'Our Products' },
     { id: 'contact', label: 'Contact Us' }
   ];
 
@@ -206,8 +207,8 @@ const Layout = ({ children, currentTab, onTabClick }) => {
             <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '14px' }}>
               <li><a href="#about" onClick={(e) => { e.preventDefault(); onTabClick('about'); }} style={{ color: '#94a3b8', textDecoration: 'none' }}>About Us</a></li>
               <li><a href="#technology" onClick={(e) => { e.preventDefault(); onTabClick('technology'); }} style={{ color: '#94a3b8', textDecoration: 'none' }}>Technology</a></li>
-              <li><a href="#products" onClick={(e) => { e.preventDefault(); onTabClick('products'); }} style={{ color: '#94a3b8', textDecoration: 'none' }}>Products Portfolio</a></li>
               <li><a href="#simulation" onClick={(e) => { e.preventDefault(); onTabClick('simulation'); }} style={{ color: '#94a3b8', textDecoration: 'none' }}>Process Simulation</a></li>
+              <li><a href="#products" onClick={(e) => { e.preventDefault(); onTabClick('products'); }} style={{ color: '#94a3b8', textDecoration: 'none' }}>Products Portfolio</a></li>
               <li><a href="#contact" onClick={(e) => { e.preventDefault(); onTabClick('contact'); }} style={{ color: '#94a3b8', textDecoration: 'none' }}>Logistics Route</a></li>
             </ul>
           </div>

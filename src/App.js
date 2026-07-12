@@ -14,8 +14,8 @@ function App() {
     home: useRef(null),
     about: useRef(null),
     technology: useRef(null),
-    products: useRef(null),
     simulation: useRef(null),
+    products: useRef(null),
     contact: useRef(null)
   };
 
@@ -81,14 +81,14 @@ function App() {
         <Technology />
       </section>
 
+      {/* Simulation Module - Moved Before Products */}
+      <section id="simulation" ref={sectionRefs.simulation} style={{ paddingTop: '40px' }}>
+        <Simulation />
+      </section>
+
       {/* Products Module */}
       <section id="products" ref={sectionRefs.products} style={{ paddingTop: '40px' }}>
         <Products />
-      </section>
-
-      {/* Simulation Module */}
-      <section id="simulation" ref={sectionRefs.simulation} style={{ paddingTop: '40px' }}>
-        <Simulation />
       </section>
 
       {/* Contact Us Module */}
