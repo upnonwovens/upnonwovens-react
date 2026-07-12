@@ -7,6 +7,7 @@ const Products = () => {
       title: "Medical & Healthcare",
       techSpec: "SMS (Spunbond-Meltblown-Spunbond) • Hydrophobic Treatment",
       badgeColor: "#e11d48", // Crimson Red
+      image: "/medical.jpg",
       description: "Engineered for mission-critical barrier protection, our medical-grade SMS fabrics integrate a ultra-fine meltblown filtration core sandwiched between robust spunbond protective layers. The specialized hydrophobic architecture strictly repels blood, bodily fluids, and aqueous solutions while maintaining exceptional breathability and thermal comfort.",
       keyFeatures: [
         "High Bacterial Filtration Efficiency (BFE) & Particulate Barrier",
@@ -21,6 +22,7 @@ const Products = () => {
       title: "Hygiene & Personal Care",
       techSpec: "SSS (Spunbond-Spunbond-Spunbond) • Hydrophilic Treatment",
       badgeColor: "#0284c7", // Sky Blue
+      image: "/hygiene.jpg",
       description: "Designed specifically for direct, continuous skin contact, our multi-beam SSS hydrophilic textiles deliver ultra-soft tactile comfort combined with rapid moisture management. The permanent hydrophilic surface treatment lowers surface tension, promoting instant liquid strike-through into absorbent cores while preventing re-wetting to keep delicate skin dry and healthy.",
       keyFeatures: [
         "Ultra-soft, cotton-like tactile hand-feel for sensitive skin",
@@ -35,6 +37,7 @@ const Products = () => {
       title: "Eco-Friendly Packaging",
       techSpec: "High-Tenacity Spunbond PP • Customizable GSM & Colors",
       badgeColor: "#16a34a", // Green
+      image: "/packaging.jpg",
       description: "Built to displace single-use conventional plastics, our heavy-duty packaging textiles offer outstanding mechanical strength, puncture resistance, and dimensional stability. Manufactured from 100% recyclable polypropylene, these breathable fabrics are highly printable and engineered for seamless ultrasonic welding or automated industrial sewing.",
       keyFeatures: [
         "High load-bearing tensile strength and tear resistance",
@@ -49,6 +52,7 @@ const Products = () => {
       title: "Agricultural & Horticultural",
       techSpec: "UV-Stabilized Spunbond • Controlled Micro-Porosity",
       badgeColor: "#ca8a04", // Amber Gold
+      image: "/agriculture.jpg",
       description: "Formulated with advanced ultraviolet repellents and thermal stabilizers, our agricultural textiles protect valuable crops from solar degradation, frost, pest infiltration, and severe weather. The controlled air and water permeability creates an optimal microclimate that accelerates plant growth while naturally suppressing weed proliferation without herbicides.",
       keyFeatures: [
         "Extended UV degradation resistance for multi-season outdoor exposure",
@@ -63,6 +67,7 @@ const Products = () => {
       title: "Automotive & Industrial",
       techSpec: "Flame-Retardant • NVH Acoustic Insulation Matrix",
       badgeColor: "#475569", // Slate Grey
+      image: "/automobile.jpg",
       description: "Precision-engineered for automotive interior components and NVH (Noise, Vibration, and Harshness) attenuation, our high-density industrial non-wovens combine long-term abrasion durability with superior acoustic absorption. Lightweight and inherently flame-retardant, they actively contribute to overall vehicle weight reduction and improved cabin acoustics.",
       keyFeatures: [
         "Complies with strict automotive flame-retardancy safety standards",
@@ -102,7 +107,8 @@ const Products = () => {
                 backdropFilter: 'blur(10px)',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '20px'
+                gap: '25px',
+                boxSizing: 'border-box'
               }}
             >
               {/* Card Header with Tech Spec Badge */}
@@ -124,34 +130,65 @@ const Products = () => {
                 </span>
               </div>
 
-              {/* Main Technical Description */}
-              <p style={{ color: '#334155', fontSize: '15px', lineHeight: '1.7', margin: 0, fontWeight: '500' }}>
-                {cat.description}
-              </p>
+              {/* Responsive 2-Column Content Body (Text + Image) */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '30px', alignItems: 'stretch' }}>
+                
+                {/* Left Column: Technical Copy & Features */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', justifyContent: 'center' }}>
+                  <p style={{ color: '#334155', fontSize: '15px', lineHeight: '1.7', margin: 0, fontWeight: '500' }}>
+                    {cat.description}
+                  </p>
 
-              {/* Key Features & Characteristics */}
-              <div style={{ backgroundColor: 'rgba(248, 249, 250, 0.8)', padding: '20px', borderRadius: '10px', borderLeft: `4px solid ${cat.badgeColor}` }}>
-                <h4 style={{ fontSize: '14px', fontWeight: '700', color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 12px 0' }}>
-                  Technical Characteristics
-                </h4>
-                <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '10px' }}>
-                  {cat.keyFeatures.map((feature, i) => (
-                    <li key={i} style={{ color: '#475569', fontSize: '14px', display: 'flex', alignItems: 'flex-start', gap: '8px', lineHeight: '1.5' }}>
-                      <span style={{ color: cat.badgeColor, fontWeight: 'bold', lineHeight: '1' }}>✓</span>
-                      <span>{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+                  {/* Key Features Box */}
+                  <div style={{ backgroundColor: 'rgba(248, 249, 250, 0.8)', padding: '20px', borderRadius: '10px', borderLeft: `4px solid ${cat.badgeColor}` }}>
+                    <h4 style={{ fontSize: '14px', fontWeight: '700', color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 12px 0' }}>
+                      Technical Characteristics
+                    </h4>
+                    <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                      {cat.keyFeatures.map((feature, i) => (
+                        <li key={i} style={{ color: '#475569', fontSize: '14px', display: 'flex', alignItems: 'flex-start', gap: '8px', lineHeight: '1.5' }}>
+                          <span style={{ color: cat.badgeColor, fontWeight: 'bold', lineHeight: '1' }}>✓</span>
+                          <span>{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
 
-              {/* Primary Industry Applications */}
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', flexWrap: 'wrap', paddingTop: '5px' }}>
-                <span style={{ fontSize: '14px', fontWeight: '700', color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                  Primary Applications:
-                </span>
-                <span style={{ color: '#64748b', fontSize: '14px', fontStyle: 'italic', lineHeight: '1.6' }}>
-                  {cat.applications}
-                </span>
+                  {/* Industry Applications */}
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', flexWrap: 'wrap', paddingTop: '5px' }}>
+                    <span style={{ fontSize: '14px', fontWeight: '700', color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                      Primary Applications:
+                    </span>
+                    <span style={{ color: '#64748b', fontSize: '14px', fontStyle: 'italic', lineHeight: '1.6' }}>
+                      {cat.applications}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Right Column: Product Image Showcase Frame */}
+                <div style={{ 
+                  borderRadius: '12px', 
+                  overflow: 'hidden', 
+                  backgroundColor: '#f1f5f9', 
+                  border: '1px solid #e2e8f0', 
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.05)', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  minHeight: '260px',
+                  maxHeight: '400px',
+                  position: 'relative'
+                }}>
+                  <img 
+                    src={cat.image} 
+                    alt={`${cat.title} Product Showcase`} 
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                    onError={(e) => { 
+                      e.target.style.display = 'none'; 
+                    }}
+                  />
+                </div>
+
               </div>
 
             </div>
