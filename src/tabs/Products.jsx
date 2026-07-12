@@ -329,7 +329,7 @@ const Products = () => {
               </button>
               <button 
                 onClick={handleCloseModal}
-                style={{ backgroundColor: '#e11d48', color: '#ffffff', border: 'none', width: '36px', height: '36px', borderRadius: '8px', fontWeight: '800', fontSize: '20px', cursor: 'pointer', marginLeft: '10px', display: 'flex', alignItems: 'center', justify-content: 'center' }}
+                style={{ backgroundColor: '#e11d48', color: '#ffffff', border: 'none', width: '36px', height: '36px', borderRadius: '8px', fontWeight: '800', fontSize: '20px', cursor: 'pointer', marginLeft: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               >
                 ×
               </button>
@@ -344,7 +344,7 @@ const Products = () => {
             backgroundColor: 'rgba(0, 0, 0, 0.3)',
             borderRadius: '16px',
             border: '1px solid rgba(255, 255, 255, 0.1)',
-            overflow: 'auto', // Enables scrolling when zoomed inside
+            overflow: 'auto',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
