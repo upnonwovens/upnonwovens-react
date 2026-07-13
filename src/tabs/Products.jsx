@@ -93,15 +93,28 @@ const Products = () => {
   };
 
   const handleZoomIn = () => {
-    setZoomLevel((prev) => Math.min(prev + 0.3, 3)); // Max zoom 3x
+    setZoomLevel((prev) => Math.min(prev + 0.3, 3));
   };
 
   const handleZoomOut = () => {
-    setZoomLevel((prev) => Math.max(prev - 0.3, 0.5)); // Min zoom 0.5x
+    setZoomLevel((prev) => Math.max(prev - 0.3, 0.5));
   };
 
   const handleResetZoom = () => {
     setZoomLevel(1);
+  };
+
+  const scrollToSection = (id) => {
+    const element = document.getElementById(`category-${id}`);
+    if (element) {
+      const headerOffset = 110;
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    }
   };
 
   return (
@@ -116,15 +129,72 @@ const Products = () => {
         .img-hover-frame:hover img {
           transform: scale(1.02);
         }
+        .flow-node:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+          border-color: #2563eb !important;
+        }
       `}</style>
 
-      {/* Section Title Header */}
-      <section style={{ marginBottom: '50px', textAlign: 'center' }}>
-        <div style={{ backgroundColor: 'rgba(255, 255, 255, 0.95)', padding: '35px 20px', borderRadius: '16px', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)', border: '1px solid rgba(226, 232, 240, 0.8)', backdropFilter: 'blur(10px)' }}>
-          <h1 style={{ fontSize: 'clamp(28px, 4vw, 36px)', fontWeight: '800', color: '#0f172a', margin: '0 0 12px 0' }}>Our Product Portfolio</h1>
-          <p style={{ color: '#475569', fontSize: '16px', margin: 0, maxWidth: '750px', display: 'inline-block', lineHeight: '1.6' }}>
+      {/* Section Title Header & Architectural Flow Diagram */}
+      <section style={{ marginBottom: '60px', textAlign: 'center' }}>
+        <div style={{ backgroundColor: 'rgba(255, 255, 255, 0.95)', padding: '40px 20px', borderRadius: '20px', boxShadow: '0 15px 35px rgba(0,0,0,0.05)', border: '1px solid rgba(226, 232, 240, 0.8)', backdropFilter: 'blur(10px)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          
+          <h1 style={{ fontSize: 'clamp(28px, 4vw, 38px)', fontWeight: '800', color: '#0f172a', margin: '0 0 12px 0' }}>Our Product Portfolio</h1>
+          <p style={{ color: '#475569', fontSize: '16px', margin: '0 0 35px 0', maxWidth: '750px', lineHeight: '1.6' }}>
             Specialized polypropylene non-woven fabric matrices engineered for demanding industrial, medical, and commercial applications.
           </p>
+
+          {/* VISUAL FLOW DIAGRAM */}
+          <div style={{ width: '100%', maxWidth: '1000px', borderTop: '1px dashed #cbd5e1', paddingTop: '30px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            
+            {/* Root Node */}
+            <div style={{ backgroundColor: '#0f172a', color: '#ffffff', padding: '10px 24px', borderRadius: '30px', fontSize: '14px', fontWeight: '700', letterSpacing: '0.5px', boxShadow: '0 4px 10px rgba(15,23,42,0.2)', position: 'relative', zIndex: 2 }}>
+              CORE MATERIAL: POLYPROPYLENE (PP) MATRIX
+            </div>
+
+            {/* Vertical Connector Line */}
+            <div style={{ width: '2px', height: '25px', backgroundColor: '#94a3b8' }}></div>
+
+            {/* Horizontal Branching Bar */}
+            <div style={{ width: '80%', maxWidth: '800px', height: '2px', backgroundColor: '#94a3b8', position: 'relative' }}></div>
+
+            {/* 5 Segment Nodes Grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '15px', width: '100%', marginTop: '0px', paddingTop: '15px' }}>
+              {productCategories.map((cat) => (
+                <div 
+                  key={`flow-${cat.id}`}
+                  onClick={() => scrollToSection(cat.id)}
+                  className="flow-node"
+                  style={{
+                    backgroundColor: '#ffffff',
+                    border: '1px solid #cbd5e1',
+                    borderTop: `4px solid ${cat.badgeColor}`,
+                    borderRadius: '12px',
+                    padding: '14px 10px',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    boxShadow: '0 4px 6px rgba(0,0,0,0.03)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px',
+                    position: 'relative'
+                  }}
+                >
+                  {/* Dropdown Connector Pin */}
+                  <div style={{ width: '2px', height: '15px', backgroundColor: '#94a3b8', position: 'absolute', top: '-15px', left: '50%', transform: 'translateX(-50%)' }}></div>
+                  
+                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: cat.badgeColor, display: 'block' }}></span>
+                  <span style={{ fontSize: '14px', fontWeight: '800', color: '#0f172a', lineHeight: '1.2' }}>{cat.title}</span>
+                  <span style={{ fontSize: '11px', color: '#64748b', fontWeight: '600' }}>Click to View ↓</span>
+                </div>
+              ))}
+            </div>
+
+          </div>
+
         </div>
       </section>
 
@@ -134,6 +204,7 @@ const Products = () => {
           {productCategories.map((cat) => (
             <div 
               key={cat.id} 
+              id={`category-${cat.id}`}
               style={{ 
                 backgroundColor: 'rgba(255, 255, 255, 0.95)', 
                 borderRadius: '16px', 
@@ -228,7 +299,7 @@ const Products = () => {
                     style={{ 
                       width: '100%', 
                       height: '100%', 
-                      objectFit: 'contain', // Prevents cropping of text at edges
+                      objectFit: 'contain',
                       display: 'block',
                       transition: 'transform 0.3s ease'
                     }}
