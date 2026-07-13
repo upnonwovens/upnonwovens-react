@@ -108,11 +108,11 @@ const Contact = () => {
           }}>
             <iframe
               title="KSF Manufacturing Facility GPS Location Frame"
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3527.794101416892!2d79.8828551!3d27.846153!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x399f979803bba305%3A0xe54df66432f913d3!2sIndustrial%20Area%20Growth%20Centre%2C%20Jamour!5e0!3m2!1sen!2sin!4v1715000000000!5m2!1sen!2sin"
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3528.5221544570063!2d79.84861637562487!3d27.824475876115653!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x399fbd1da6f9a435%3A0xf889235b920ea5a5!2sKSF!5e0!3m2!1sen!2sin!4v1783966249524!5m2!1sen!2sin"
               style={{ width: '100%', height: '100%', border: 0 }}
               allowFullScreen=""
               loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
+              referrerPolicy="strict-origin-when-cross-origin"
             ></iframe>
           </div>
 
