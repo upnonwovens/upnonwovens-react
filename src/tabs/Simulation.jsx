@@ -7,7 +7,7 @@ const Simulation = () => {
   // SVG Flow Coordinates precisely calibrated from your click data
   const flowPoints = [
     { x: 41, y: 8 },  // 1. Hopper
-    { x: 42, y: 31 }, // 2. Extruder
+    { x: 42, y: 32 }, // 2. Extruder
     { x: 58, y: 30 }, // 3. Filter
     { x: 67, y: 36 }, // 4. Metering Pump
     { x: 63, y: 37 }, // 5. Die Head
