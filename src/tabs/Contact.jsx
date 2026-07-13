@@ -32,7 +32,7 @@ const Contact = () => {
 
       {/* Title Header */}
       <section style={{ marginBottom: '40px', textAlign: 'center' }}>
-        <h1 style={{ fontSize: 'clamp(28px, 4vw, 36px)', fontWeight: '800', color: '#0f172a', margin: '0 0 12px 0' }}>Logistics Intake Route</h1>
+        <h1 style={{ fontSize: 'clamp(28px, 4vw, 36px)', fontWeight: '800', color: '#0f172a', margin: '0 0 12px 0' }}>Logistics Route</h1>
         <p style={{ color: '#475569', fontSize: '16px', margin: 0, maxWidth: '750px', display: 'inline-block', lineHeight: '1.6' }}>
           Coordinate physical batch pickups or route custom specification inquiries directly to our production unit desk.
         </p>
@@ -77,7 +77,7 @@ const Contact = () => {
                 <svg style={{ width: '24px', height: '24px', color: '#2563eb', flexShrink: 0 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
-                <h3 style={{ fontSize: '20px', fontWeight: '800', margin: 0, color: '#0f172a' }}>Communications Channels</h3>
+                <h3 style={{ fontSize: '20px', fontWeight: '800', margin: 0, color: '#0f172a' }}>Communication Channels</h3>
               </div>
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', color: '#475569', fontSize: '15px', paddingLeft: '34px' }}>
