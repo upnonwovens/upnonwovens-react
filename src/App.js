@@ -3,6 +3,7 @@ import Layout from './components/Layout';
 import Home from './tabs/Home';
 import About from './tabs/About';
 import Technology from './tabs/Technology';
+import Tools from './tabs/Tools';
 import Products from './tabs/Products';
 import Simulation from './tabs/Simulation';
 import Contact from './tabs/Contact';
@@ -14,6 +15,7 @@ function App() {
     home: useRef(null),
     about: useRef(null),
     technology: useRef(null),
+    tools: useRef(null),
     simulation: useRef(null),
     products: useRef(null),
     contact: useRef(null)
@@ -81,7 +83,12 @@ function App() {
         <Technology />
       </section>
 
-      {/* Simulation Module - Moved Before Products */}
+      {/* Standalone Tools & Calculators Module */}
+      <section id="tools" ref={sectionRefs.tools} style={{ paddingTop: '40px' }}>
+        <Tools />
+      </section>
+
+      {/* Simulation Module */}
       <section id="simulation" ref={sectionRefs.simulation} style={{ paddingTop: '40px' }}>
         <Simulation />
       </section>
