@@ -43,18 +43,25 @@ const Home = () => {
               left: 0,
               width: '100%',
               height: '100%',
-              backgroundImage: `url(${imgSrc})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
               opacity: currentSlide === index ? 1 : 0,
               pointerEvents: currentSlide === index ? 'auto' : 'none',
               transition: 'opacity 1s ease-in-out',
-              zIndex: currentSlide === index ? 2 : 1,
-              transform: 'translate3d(0, 0, 0)',
-              WebkitTransform: 'translate3d(0, 0, 0)',
-              willChange: 'opacity'
+              zIndex: currentSlide === index ? 2 : 1
             }}
-          />
+          >
+            {/* Native img tag prevents desktop browser GPU texture dropping */}
+            <img 
+              src={imgSrc} 
+              alt={`KSF Manufacturing Facility Slide ${index + 1}`}
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                objectPosition: 'center',
+                display: 'block'
+              }}
+            />
+          </div>
         ))}
 
         <div style={{ 
