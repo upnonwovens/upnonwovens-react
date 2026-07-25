@@ -11,13 +11,6 @@ const Home = () => {
   ];
 
   useEffect(() => {
-    slideImages.forEach((imageSrc) => {
-      const img = new Image();
-      img.src = imageSrc;
-    });
-  }, []);
-
-  useEffect(() => {
     const slideTimer = setInterval(() => {
       setCurrentSlide((prevIndex) => (prevIndex + 1) % slideImages.length);
     }, 6000);
@@ -49,10 +42,13 @@ const Home = () => {
               zIndex: currentSlide === index ? 2 : 1
             }}
           >
-            {/* Native img tag prevents desktop browser GPU texture dropping */}
+            {/* Native img tag with asynchronous off-thread decoding to handle high-res smartphone captures */}
             <img 
               src={imgSrc} 
               alt={`KSF Manufacturing Facility Slide ${index + 1}`}
+              decoding="async"
+              loading="eager"
+              fetchPriority={index === 0 ? "high" : "auto"}
               style={{
                 width: '100%',
                 height: '100%',
