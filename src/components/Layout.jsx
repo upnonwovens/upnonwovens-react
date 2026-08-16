@@ -6,7 +6,7 @@ const Layout = ({ children, currentTab, onTabClick }) => {
   const [formData, setFormData] = useState({ name: '', phone: '', email: '', message: '' });
   const [submitStatus, setSubmitStatus] = useState(false);
 
-  // Updated Navigation Order with standalone Tools tab added
+  // Navigation Order
   const navItems = [
     { id: 'about', label: 'About Us' },
     { id: 'technology', label: 'Technology' },
@@ -224,10 +224,10 @@ const Layout = ({ children, currentTab, onTabClick }) => {
           </div>
         </div>
         
-        {/* Subtle Bottom Copyright and Privacy Policy Link */}
+        {/* Subtle Bottom Copyright and True URL Privacy Policy Link */}
         <div style={{ maxWidth: '1200px', margin: '40px auto 0', padding: '20px 0 0', borderTop: '1px solid #334155', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '10px', fontSize: '13px' }}>
           <span>© 2026 Krishna Solar Farms Pvt. Ltd. All Rights Reserved.</span>
-          <a href="#privacy" onClick={(e) => { e.preventDefault(); onTabClick('privacy'); }} style={{ color: '#64748b', textDecoration: 'none', transition: 'color 0.2s' }} onMouseEnter={(e) => e.target.style.color = '#cbd5e1'} onMouseLeave={(e) => e.target.style.color = '#64748b'}>
+          <a href="/privacy-policy" style={{ color: '#64748b', textDecoration: 'none', transition: 'color 0.2s' }} onMouseEnter={(e) => e.target.style.color = '#cbd5e1'} onMouseLeave={(e) => e.target.style.color = '#64748b'}>
             Privacy Policy
           </a>
         </div>
