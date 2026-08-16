@@ -7,6 +7,7 @@ import Tools from './tabs/Tools';
 import Products from './tabs/Products';
 import Simulation from './tabs/Simulation';
 import Contact from './tabs/Contact';
+import PrivacyPolicy from './tabs/PrivacyPolicy';
 
 function App() {
   const [currentTab, setCurrentTab] = useState('about');
@@ -18,7 +19,8 @@ function App() {
     tools: useRef(null),
     simulation: useRef(null),
     products: useRef(null),
-    contact: useRef(null)
+    contact: useRef(null),
+    privacy: useRef(null)
   };
 
   const handleTabClick = (tabId) => {
@@ -101,6 +103,11 @@ function App() {
       {/* Contact Us Module */}
       <section id="contact" ref={sectionRefs.contact} style={{ paddingTop: '40px' }}>
         <Contact />
+      </section>
+
+      {/* Privacy Policy Module (Hidden from main nav, accessed via footer) */}
+      <section id="privacy" ref={sectionRefs.privacy} style={{ paddingTop: '40px' }}>
+        <PrivacyPolicy />
       </section>
     </Layout>
   );

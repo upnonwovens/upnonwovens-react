@@ -223,8 +223,13 @@ const Layout = ({ children, currentTab, onTabClick }) => {
             </p>
           </div>
         </div>
-        <div style={{ maxWidth: '1200px', margin: '40px auto 0', padding: '20px 0 0', borderTop: '1px solid #334155', textAlign: 'center', fontSize: '13px' }}>
-          © 2026 Krishna Solar Farms Pvt. Ltd. All Rights Reserved.
+        
+        {/* Subtle Bottom Copyright and Privacy Policy Link */}
+        <div style={{ maxWidth: '1200px', margin: '40px auto 0', padding: '20px 0 0', borderTop: '1px solid #334155', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '10px', fontSize: '13px' }}>
+          <span>© 2026 Krishna Solar Farms Pvt. Ltd. All Rights Reserved.</span>
+          <a href="#privacy" onClick={(e) => { e.preventDefault(); onTabClick('privacy'); }} style={{ color: '#64748b', textDecoration: 'none', transition: 'color 0.2s' }} onMouseEnter={(e) => e.target.style.color = '#cbd5e1'} onMouseLeave={(e) => e.target.style.color = '#64748b'}>
+            Privacy Policy
+          </a>
         </div>
       </footer>
     </div>
