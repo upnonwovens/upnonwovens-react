@@ -1,6 +1,7 @@
+// src/components/Layout.jsx
 import React, { useState } from 'react';
 
-const Layout = ({ children, currentTab, onTabClick }) => {
+const Layout = ({ children, currentTab, onTabClick, onOpenReminderModal }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [formData, setFormData] = useState({ name: '', phone: '', email: '', message: '' });
@@ -224,12 +225,31 @@ const Layout = ({ children, currentTab, onTabClick }) => {
           </div>
         </div>
         
-        {/* Subtle Bottom Copyright and True URL Privacy Policy Link */}
+        {/* Bottom Copyright, Privacy Policy, and Admin Portal Trigger */}
         <div style={{ maxWidth: '1200px', margin: '40px auto 0', padding: '20px 0 0', borderTop: '1px solid #334155', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '10px', fontSize: '13px' }}>
           <span>© 2026 Krishna Solar Farms Pvt. Ltd. All Rights Reserved.</span>
-          <a href="/privacy-policy" style={{ color: '#64748b', textDecoration: 'none', transition: 'color 0.2s' }} onMouseEnter={(e) => e.target.style.color = '#cbd5e1'} onMouseLeave={(e) => e.target.style.color = '#64748b'}>
-            Privacy Policy
-          </a>
+          <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
+            <a 
+              href="#admin-reminders" 
+              onClick={(e) => { 
+                e.preventDefault(); 
+                if (onOpenReminderModal) onOpenReminderModal(); 
+              }} 
+              style={{ color: '#64748b', textDecoration: 'none', transition: 'color 0.2s', cursor: 'pointer' }}
+              onMouseEnter={(e) => e.target.style.color = '#cbd5e1'} 
+              onMouseLeave={(e) => e.target.style.color = '#64748b'}
+            >
+              Admin Portal
+            </a>
+            <a 
+              href="/privacy-policy" 
+              style={{ color: '#64748b', textDecoration: 'none', transition: 'color 0.2s' }} 
+              onMouseEnter={(e) => e.target.style.color = '#cbd5e1'} 
+              onMouseLeave={(e) => e.target.style.color = '#64748b'}
+            >
+              Privacy Policy
+            </a>
+          </div>
         </div>
       </footer>
     </div>
