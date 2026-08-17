@@ -1,7 +1,7 @@
 // src/components/Layout.jsx
 import React, { useState } from 'react';
 
-const Layout = ({ children, currentTab, onTabClick, onOpenReminderModal }) => {
+const Layout = ({ children, currentTab, onTabClick }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [formData, setFormData] = useState({ name: '', phone: '', email: '', message: '' });
@@ -230,11 +230,7 @@ const Layout = ({ children, currentTab, onTabClick, onOpenReminderModal }) => {
           <span>© 2026 Krishna Solar Farms Pvt. Ltd. All Rights Reserved.</span>
           <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
             <a 
-              href="#admin-reminders" 
-              onClick={(e) => { 
-                e.preventDefault(); 
-                if (onOpenReminderModal) onOpenReminderModal(); 
-              }} 
+              href="/admin-portal" 
               style={{ color: '#64748b', textDecoration: 'none', transition: 'color 0.2s', cursor: 'pointer' }}
               onMouseEnter={(e) => e.target.style.color = '#cbd5e1'} 
               onMouseLeave={(e) => e.target.style.color = '#64748b'}

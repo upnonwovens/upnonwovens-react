@@ -1,3 +1,4 @@
+// src/App.js
 import React, { useState, useEffect, useRef } from 'react';
 import Layout from './components/Layout';
 import Home from './tabs/Home';
@@ -8,6 +9,7 @@ import Products from './tabs/Products';
 import Simulation from './tabs/Simulation';
 import Contact from './tabs/Contact';
 import PrivacyPolicy from './tabs/PrivacyPolicy';
+import AdminPortal from './tabs/AdminPortal';
 
 function App() {
   const [currentTab, setCurrentTab] = useState('home');
@@ -24,12 +26,15 @@ function App() {
   };
 
   useEffect(() => {
-    // Check if the user navigated to the hard URL /privacy-policy
+    // Check direct path routing
     if (window.location.pathname === '/privacy-policy') {
       setViewMode('privacy');
       setCurrentTab('privacy');
+    } else if (window.location.pathname === '/admin-portal') {
+      setViewMode('admin');
+      setCurrentTab('admin');
     } else if (window.location.hash) {
-      // Handle hash routing if they navigated back to the main site from the privacy page
+      // Handle hash routing back to the single-page layout
       const targetTab = window.location.hash.replace('#', '');
       if (sectionRefs[targetTab]) {
         setTimeout(() => {
@@ -51,9 +56,12 @@ function App() {
       return;
     }
 
-    if (window.location.pathname === '/privacy-policy') {
-      // If the user is reading the privacy page and clicks a top nav link (like "About Us"), 
-      // we redirect them back to the root domain and attach the section hash.
+    if (tabId === 'admin') {
+      window.location.href = '/admin-portal';
+      return;
+    }
+
+    if (window.location.pathname === '/privacy-policy' || window.location.pathname === '/admin-portal') {
       window.location.href = `/#${tabId}`;
       return;
     }
@@ -74,7 +82,7 @@ function App() {
   };
 
   useEffect(() => {
-    if (viewMode === 'privacy') return;
+    if (viewMode === 'privacy' || viewMode === 'admin') return;
 
     const observerOptions = {
       root: null,
@@ -105,11 +113,15 @@ function App() {
 
   return (
     <Layout currentTab={currentTab} onTabClick={handleTabClick}>
-      
       {viewMode === 'privacy' ? (
         /* ISOLATED PRIVACY POLICY VIEW */
         <div style={{ paddingTop: '20px', minHeight: '70vh' }}>
           <PrivacyPolicy />
+        </div>
+      ) : viewMode === 'admin' ? (
+        /* ISOLATED ADMIN PORTAL VIEW */
+        <div style={{ paddingTop: '20px', minHeight: '70vh' }}>
+          <AdminPortal />
         </div>
       ) : (
         /* MAIN SINGLE-PAGE SCROLLING LAYOUT */
