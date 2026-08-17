@@ -23,23 +23,23 @@ function parseCSVLine(text) {
 }
 
 module.exports = async function handler(req, res) {
-  // Allow GET and POST for automated Vercel Cron and manual browser tests
+  // Allow manual triggers (POST/GET) or cron jobs
   if (req.method !== 'POST' && req.method !== 'GET') {
     return res.status(405).json({ success: false, error: 'Method Not Allowed' });
   }
 
-  // Allow execution if triggered by Vercel Cron OR manual test query (?secret=YOUR_CRON_SECRET) OR no secret required
+  // Security key check for Vercel Cron or direct calls
   const authHeader = req.headers.authorization;
   const querySecret = req.query.secret;
 
   if (process.env.CRON_SECRET) {
     const isValidCron = authHeader === `Bearer ${process.env.CRON_SECRET}`;
     const isValidQuery = querySecret === process.env.CRON_SECRET;
-    
+
     if (!isValidCron && !isValidQuery) {
-      return res.status(401).json({ 
-        success: false, 
-        error: 'Unauthorized trigger. Pass ?secret=YOUR_SECRET in browser or let Vercel Cron run.' 
+      return res.status(401).json({
+        success: false,
+        error: 'Unauthorized trigger. Pass ?secret=YOUR_SECRET in browser or let Vercel Cron run.'
       });
     }
   }
@@ -66,7 +66,7 @@ module.exports = async function handler(req, res) {
 
     const headers = parseCSVLine(rawRows[0]);
 
-    // 2. Parse CSV into structured objects
+    // 2. Parse CSV into an array of objects
     const records = rawRows.slice(1).map(row => {
       const values = parseCSVLine(row);
       const entry = {};
@@ -76,7 +76,7 @@ module.exports = async function handler(req, res) {
       return entry;
     });
 
-    // 3. Filter for Unpaid records with a valid phone number
+    // 3. Filter for Unpaid customers with valid phone numbers
     const unpaidList = records.filter(
       r => r.Status && r.Status.toLowerCase() === 'unpaid' && r.CustomerPhone
     );
@@ -94,7 +94,7 @@ module.exports = async function handler(req, res) {
             to: customer.CustomerPhone,
             type: 'template',
             template: {
-              name: 'payment_reminder',
+              name: 'payment_reminders',
               language: { code: 'en_US' },
               components: [
                 {
