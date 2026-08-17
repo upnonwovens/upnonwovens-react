@@ -23,15 +23,25 @@ function parseCSVLine(text) {
 }
 
 module.exports = async function handler(req, res) {
-  // Allow manual triggers (POST/GET) or cron jobs
+  // Allow GET and POST for automated Vercel Cron and manual browser tests
   if (req.method !== 'POST' && req.method !== 'GET') {
     return res.status(405).json({ success: false, error: 'Method Not Allowed' });
   }
 
-  // Security key check for Vercel Cron or direct calls
+  // Allow execution if triggered by Vercel Cron OR manual test query (?secret=YOUR_CRON_SECRET) OR no secret required
   const authHeader = req.headers.authorization;
-  if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    return res.status(401).json({ success: false, error: 'Unauthorized trigger' });
+  const querySecret = req.query.secret;
+
+  if (process.env.CRON_SECRET) {
+    const isValidCron = authHeader === `Bearer ${process.env.CRON_SECRET}`;
+    const isValidQuery = querySecret === process.env.CRON_SECRET;
+    
+    if (!isValidCron && !isValidQuery) {
+      return res.status(401).json({ 
+        success: false, 
+        error: 'Unauthorized trigger. Pass ?secret=YOUR_SECRET in browser or let Vercel Cron run.' 
+      });
+    }
   }
 
   const META_ACCESS_TOKEN = process.env.META_ACCESS_TOKEN;
@@ -56,7 +66,7 @@ module.exports = async function handler(req, res) {
 
     const headers = parseCSVLine(rawRows[0]);
 
-    // 2. Parse CSV into an array of objects
+    // 2. Parse CSV into structured objects
     const records = rawRows.slice(1).map(row => {
       const values = parseCSVLine(row);
       const entry = {};
@@ -66,7 +76,7 @@ module.exports = async function handler(req, res) {
       return entry;
     });
 
-    // 3. Filter for Unpaid customers with valid phone numbers
+    // 3. Filter for Unpaid records with a valid phone number
     const unpaidList = records.filter(
       r => r.Status && r.Status.toLowerCase() === 'unpaid' && r.CustomerPhone
     );
