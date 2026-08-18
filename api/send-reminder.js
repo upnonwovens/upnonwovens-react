@@ -47,6 +47,9 @@ module.exports = async function handler(req, res) {
   const PHONE_NUMBER_ID = '1228998570301220';
   const SHEET_CSV_URL = process.env.GOOGLE_SHEET_CSV_URL;
   const COMPANY_UPI_ID = '6306078257.1@hdfc';
+  
+  // Direct public static URL for the QR code uploaded in your public/ folder
+  const STATIC_QR_IMAGE_URL = 'https://upnonwovens.in/upi_qr.png';
 
   if (!META_ACCESS_TOKEN || !SHEET_CSV_URL) {
     return res.status(500).json({
@@ -83,15 +86,11 @@ module.exports = async function handler(req, res) {
 
     const results = [];
 
-    // 4. Dispatch WhatsApp reminder with QR header and 4 body parameters
+    // 4. Dispatch WhatsApp reminder using your uploaded QR image and 4 body parameters
     for (const customer of unpaidList) {
       const customerName = customer.CustomerName || 'Valued Customer';
       const totalDue = customer.TotalDue || customer.Amount || '0';
       const overdueDays = customer.OverdueDays || customer.DueDays || '0';
-
-      // Dynamic UPI payment QR generator encoded for the exact due balance
-      const upiUri = `upi://pay?pa=${encodeURIComponent(COMPANY_UPI_ID)}&pn=${encodeURIComponent('Krishna Solar Farms')}&am=${encodeURIComponent(totalDue)}&cu=INR`;
-      const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(upiUri)}`;
 
       try {
         const metaResponse = await axios.post(
@@ -111,7 +110,7 @@ module.exports = async function handler(req, res) {
                     {
                       type: 'image',
                       image: {
-                        link: qrImageUrl
+                        link: STATIC_QR_IMAGE_URL
                       }
                     }
                   ]
