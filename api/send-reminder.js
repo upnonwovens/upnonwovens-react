@@ -22,12 +22,10 @@ function parseCSVLine(text) {
 }
 
 module.exports = async function handler(req, res) {
-  // Allow GET and POST for automated Vercel Cron and manual admin triggers
   if (req.method !== 'POST' && req.method !== 'GET') {
     return res.status(405).json({ success: false, error: 'Method Not Allowed' });
   }
 
-  // Security key verification
   const authHeader = req.headers.authorization;
   const querySecret = req.query.secret;
 
@@ -38,7 +36,7 @@ module.exports = async function handler(req, res) {
     if (!isValidCron && !isValidQuery) {
       return res.status(401).json({
         success: false,
-        error: 'Unauthorized trigger. Pass ?secret=YOUR_SECRET in browser or let Vercel Cron run.'
+        error: 'Unauthorized trigger.'
       });
     }
   }
@@ -48,28 +46,25 @@ module.exports = async function handler(req, res) {
   const SHEET_CSV_URL = process.env.GOOGLE_SHEET_CSV_URL;
   const COMPANY_UPI_ID = '6306078257.1@hdfc';
   
-  // Direct public static URL for the QR code uploaded in your public/ folder
-  const STATIC_QR_IMAGE_URL = 'https://upnonwovens.in/upi_qr.png';
+  // Public static URL for the renamed QR code in your public/ folder
+  const STATIC_QR_IMAGE_URL = 'https://upnonwovens.in/upi_qr.jpg';
 
   if (!META_ACCESS_TOKEN || !SHEET_CSV_URL) {
     return res.status(500).json({
       success: false,
-      error: 'Missing META_ACCESS_TOKEN or GOOGLE_SHEET_CSV_URL environment variable'
+      error: 'Missing META_ACCESS_TOKEN or GOOGLE_SHEET_CSV_URL'
     });
   }
 
   try {
-    // 1. Fetch live CSV data from Google Sheet
     const sheetResponse = await axios.get(SHEET_CSV_URL);
     const rawRows = sheetResponse.data.split(/\r?\n/).filter(line => line.trim() !== '');
 
     if (rawRows.length < 2) {
-      return res.status(200).json({ success: true, message: 'Google Sheet is empty or missing data rows.' });
+      return res.status(200).json({ success: true, message: 'Google Sheet is empty.' });
     }
 
     const headers = parseCSVLine(rawRows[0]);
-
-    // 2. Parse CSV rows into structured objects
     const records = rawRows.slice(1).map(row => {
       const values = parseCSVLine(row);
       const entry = {};
@@ -79,14 +74,12 @@ module.exports = async function handler(req, res) {
       return entry;
     });
 
-    // 3. Filter for Unpaid records with valid phone numbers
     const unpaidList = records.filter(
       r => r.Status && r.Status.toLowerCase() === 'unpaid' && r.CustomerPhone
     );
 
     const results = [];
 
-    // 4. Dispatch WhatsApp reminder using your uploaded QR image and 4 body parameters
     for (const customer of unpaidList) {
       const customerName = customer.CustomerName || 'Valued Customer';
       const totalDue = customer.TotalDue || customer.Amount || '0';
