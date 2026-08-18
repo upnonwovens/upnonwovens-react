@@ -1,144 +1,145 @@
-// src/tabs/AdminPortal.jsx
-import React, { useState } from 'react';
-import axios from 'axios';
+// api/send-reminder.js
+const axios = require('axios');
 
-const AdminPortal = () => {
-  const [password, setPassword] = useState('');
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [results, setResults] = useState(null);
-  const [error, setError] = useState('');
+function parseCSVLine(text) {
+  const result = [];
+  let current = '';
+  let inQuotes = false;
 
-  const handlePasswordSubmit = (e) => {
-    e.preventDefault();
-    if (!password.trim()) {
-      setError('Please enter the admin key.');
-      return;
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+    if (char === '"') {
+      inQuotes = !inQuotes;
+    } else if (char === ',' && !inQuotes) {
+      result.push(current.trim().replace(/^"|"$/g, ''));
+      current = '';
+    } else {
+      current += char;
     }
-    setError('');
-    setIsAuthenticated(true);
-  };
+  }
+  result.push(current.trim().replace(/^"|"$/g, ''));
+  return result;
+}
 
-  const handleSendBatch = async () => {
-    setLoading(true);
-    setError('');
-    setResults(null);
+module.exports = async function handler(req, res) {
+  if (req.method !== 'POST' && req.method !== 'GET') {
+    return res.status(405).json({ success: false, error: 'Method Not Allowed' });
+  }
 
-    try {
-      const response = await axios.get(`/api/send-reminder?secret=${encodeURIComponent(password)}`);
-      setResults(response.data);
-    } catch (err) {
-      setError(err.response?.data?.error || 'Failed to dispatch reminders. Check your secret key.');
-    } finally {
-      setLoading(false);
+  const authHeader = req.headers.authorization;
+  const querySecret = req.query.secret;
+
+  if (process.env.CRON_SECRET) {
+    const isValidCron = authHeader === `Bearer ${process.env.CRON_SECRET}`;
+    const isValidQuery = querySecret === process.env.CRON_SECRET;
+
+    if (!isValidCron && !isValidQuery) {
+      return res.status(401).json({
+        success: false,
+        error: 'Unauthorized trigger. Pass ?secret=YOUR_SECRET in browser or let Vercel Cron run.'
+      });
     }
-  };
+  }
 
-  return (
-    <div style={{ maxWidth: '650px', margin: '40px auto', padding: '35px 25px', background: '#ffffff', borderRadius: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}>
-      <h2 style={{ margin: '0 0 10px 0', color: '#0f172a', fontSize: '24px', fontWeight: '700' }}>
-        KSF Payment Reminder Portal
-      </h2>
-      <p style={{ color: '#64748b', fontSize: '14px', margin: '0 0 25px 0' }}>
-        Secure interface for triggering WhatsApp payment reminders to overdue accounts.
-      </p>
+  const META_ACCESS_TOKEN = process.env.META_ACCESS_TOKEN;
+  const PHONE_NUMBER_ID = '1228998570301220';
+  const SHEET_CSV_URL = process.env.GOOGLE_SHEET_CSV_URL;
+  const COMPANY_UPI_ID = '6306078257.1@hdfc';
 
-      {!isAuthenticated ? (
-        <form onSubmit={handlePasswordSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-          <div>
-            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', fontSize: '14px', color: '#334155' }}>
-              Administrator Secret Key
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter CRON_SECRET"
-              autoFocus
-              style={{
-                width: '100%',
-                padding: '12px',
-                borderRadius: '8px',
-                border: '1px solid #cbd5e1',
-                fontSize: '15px',
-                boxSizing: 'border-box'
-              }}
-            />
-          </div>
+  if (!META_ACCESS_TOKEN || !SHEET_CSV_URL) {
+    return res.status(500).json({
+      success: false,
+      error: 'Missing META_ACCESS_TOKEN or GOOGLE_SHEET_CSV_URL environment variable'
+    });
+  }
 
-          {error && <div style={{ color: '#dc2626', fontSize: '13px', fontWeight: '500' }}>{error}</div>}
+  try {
+    const sheetResponse = await axios.get(SHEET_CSV_URL);
+    const rawRows = sheetResponse.data.split(/\r?\n/).filter(line => line.trim() !== '');
 
-          <button
-            type="submit"
-            style={{
-              padding: '12px',
-              backgroundColor: '#0f172a',
-              color: '#ffffff',
-              border: 'none',
-              borderRadius: '8px',
-              fontWeight: '700',
-              cursor: 'pointer',
-              fontSize: '15px'
-            }}
-          >
-            Authenticate
-          </button>
-        </form>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          <div style={{ padding: '12px 16px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', color: '#166534', fontSize: '14px', fontWeight: '500' }}>
-            ✓ Authenticated successfully.
-          </div>
+    if (rawRows.length < 2) {
+      return res.status(200).json({ success: true, message: 'Google Sheet is empty or missing data rows.' });
+    }
 
-          <button
-            onClick={handleSendBatch}
-            disabled={loading}
-            style={{
-              padding: '14px',
-              backgroundColor: loading ? '#94a3b8' : '#2563eb',
-              color: '#ffffff',
-              border: 'none',
-              borderRadius: '8px',
-              fontWeight: '700',
-              cursor: loading ? 'not-allowed' : 'pointer',
-              fontSize: '15px'
-            }}
-          >
-            {loading ? 'Dispatching WhatsApp Reminders...' : 'Send Overdue Reminders Now'}
-          </button>
+    const headers = parseCSVLine(rawRows[0]);
 
-          {error && (
-            <div style={{ padding: '12px', background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', borderRadius: '8px', fontSize: '14px' }}>
-              {error}
-            </div>
-          )}
+    const records = rawRows.slice(1).map(row => {
+      const values = parseCSVLine(row);
+      const entry = {};
+      headers.forEach((header, index) => {
+        entry[header] = values[index] ? values[index].trim() : '';
+      });
+      return entry;
+    });
 
-          {results && (
-            <div style={{ padding: '16px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px' }}>
-              <h4 style={{ margin: '0 0 10px 0', color: '#0f172a' }}>Execution Summary</h4>
-              <p style={{ margin: '0 0 12px 0', fontSize: '14px', color: '#475569' }}>
-                <strong>Total Unpaid Identified:</strong> {results.totalUnpaid}
-              </p>
-              <div style={{ maxHeight: '250px', overflowY: 'auto' }}>
-                {results.processed?.map((item, idx) => (
-                  <div key={idx} style={{ fontSize: '13px', marginBottom: '8px', paddingBottom: '8px', borderBottom: '1px solid #e2e8f0' }}>
-                    <span style={{ color: item.status === 'SENT' ? '#16a34a' : '#dc2626', fontWeight: 'bold' }}>
-                      • {item.customer || item.phone} ({item.phone}): {item.status}
-                    </span>
-                    {item.error && (
-                      <div style={{ color: '#b91c1c', fontSize: '12px', marginTop: '2px', fontFamily: 'monospace' }}>
-                        {item.error?.error?.message || JSON.stringify(item.error)}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
+    const unpaidList = records.filter(
+      r => r.Status && r.Status.toLowerCase() === 'unpaid' && r.CustomerPhone
+    );
+
+    const results = [];
+
+    for (const customer of unpaidList) {
+      const customerName = customer.CustomerName || 'Valued Customer';
+      const totalDue = customer.TotalDue || customer.Amount || '0';
+      const overdueDays = customer.OverdueDays || customer.DueDays || '0';
+
+      try {
+        const metaResponse = await axios.post(
+          `https://graph.facebook.com/v21.0/${PHONE_NUMBER_ID}/messages`,
+          {
+            messaging_product: 'whatsapp',
+            recipient_type: 'individual',
+            to: customer.CustomerPhone,
+            type: 'template',
+            template: {
+              name: 'outstanding_balance_reminder', // Check that this matches the exact name you submitted
+              language: { code: 'en_US' },
+              components: [
+                {
+                  type: 'body',
+                  parameters: [
+                    { type: 'text', text: customerName },
+                    { type: 'text', text: String(totalDue) },
+                    { type: 'text', text: String(overdueDays) },
+                    { type: 'text', text: COMPANY_UPI_ID }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${META_ACCESS_TOKEN}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+
+        results.push({
+          phone: customer.CustomerPhone,
+          customer: customerName,
+          totalDue: totalDue,
+          status: 'SENT',
+          messageId: metaResponse.data.messages[0].id
+        });
+      } catch (sendError) {
+        const errorData = sendError.response ? sendError.response.data : { message: sendError.message };
+        results.push({
+          phone: customer.CustomerPhone,
+          customer: customerName,
+          status: 'FAILED',
+          error: errorData
+        });
+      }
+    }
+
+    return res.status(200).json({
+      success: true,
+      totalUnpaid: unpaidList.length,
+      processed: results
+    });
+  } catch (error) {
+    console.error('Batch Execution Error:', error.message);
+    return res.status(500).json({ success: false, error: error.message });
+  }
 };
-
-export default AdminPortal;
