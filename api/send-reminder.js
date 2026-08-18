@@ -22,10 +22,12 @@ function parseCSVLine(text) {
 }
 
 module.exports = async function handler(req, res) {
+  // Allow GET and POST for automated Vercel Cron and manual admin triggers
   if (req.method !== 'POST' && req.method !== 'GET') {
     return res.status(405).json({ success: false, error: 'Method Not Allowed' });
   }
 
+  // Security key verification
   const authHeader = req.headers.authorization;
   const querySecret = req.query.secret;
 
@@ -54,6 +56,7 @@ module.exports = async function handler(req, res) {
   }
 
   try {
+    // 1. Fetch live CSV data from Google Sheet
     const sheetResponse = await axios.get(SHEET_CSV_URL);
     const rawRows = sheetResponse.data.split(/\r?\n/).filter(line => line.trim() !== '');
 
@@ -63,6 +66,7 @@ module.exports = async function handler(req, res) {
 
     const headers = parseCSVLine(rawRows[0]);
 
+    // 2. Parse CSV rows into structured objects
     const records = rawRows.slice(1).map(row => {
       const values = parseCSVLine(row);
       const entry = {};
@@ -72,16 +76,22 @@ module.exports = async function handler(req, res) {
       return entry;
     });
 
+    // 3. Filter for Unpaid records with valid phone numbers
     const unpaidList = records.filter(
       r => r.Status && r.Status.toLowerCase() === 'unpaid' && r.CustomerPhone
     );
 
     const results = [];
 
+    // 4. Dispatch WhatsApp reminder with QR header and 4 body parameters
     for (const customer of unpaidList) {
       const customerName = customer.CustomerName || 'Valued Customer';
       const totalDue = customer.TotalDue || customer.Amount || '0';
       const overdueDays = customer.OverdueDays || customer.DueDays || '0';
+
+      // Dynamic UPI payment QR generator encoded for the exact due balance
+      const upiUri = `upi://pay?pa=${encodeURIComponent(COMPANY_UPI_ID)}&pn=${encodeURIComponent('Krishna Solar Farms')}&am=${encodeURIComponent(totalDue)}&cu=INR`;
+      const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(upiUri)}`;
 
       try {
         const metaResponse = await axios.post(
@@ -92,9 +102,20 @@ module.exports = async function handler(req, res) {
             to: customer.CustomerPhone,
             type: 'template',
             template: {
-              name: 'outstanding_balance_reminder', // Ensure this matches the exact name in your Template Library
+              name: 'outstanding_balance_reminder',
               language: { code: 'en_US' },
               components: [
+                {
+                  type: 'header',
+                  parameters: [
+                    {
+                      type: 'image',
+                      image: {
+                        link: qrImageUrl
+                      }
+                    }
+                  ]
+                },
                 {
                   type: 'body',
                   parameters: [
@@ -123,13 +144,13 @@ module.exports = async function handler(req, res) {
           messageId: metaResponse.data.messages[0].id
         });
       } catch (sendError) {
-        const errorDetails = sendError.response ? sendError.response.data : { message: sendError.message };
-        console.error(`Meta API Error for ${customer.CustomerPhone}:`, JSON.stringify(errorDetails));
+        const errorData = sendError.response ? sendError.response.data : { message: sendError.message };
+        console.error(`Meta API Error for ${customer.CustomerPhone}:`, JSON.stringify(errorData));
         results.push({
           phone: customer.CustomerPhone,
           customer: customerName,
           status: 'FAILED',
-          error: errorDetails
+          error: errorData
         });
       }
     }
