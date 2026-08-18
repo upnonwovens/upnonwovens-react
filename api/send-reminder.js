@@ -21,6 +21,24 @@ function parseCSVLine(text) {
   return result;
 }
 
+// Calculate overdue day count if DueDate is provided
+function getOverdueDays(dueDateStr, explicitDays) {
+  if (explicitDays && !isNaN(parseInt(explicitDays, 10))) {
+    return String(explicitDays);
+  }
+  if (!dueDateStr) return '30+';
+
+  const parsedDate = new Date(dueDateStr);
+  if (isNaN(parsedDate.getTime())) {
+    return '30+';
+  }
+
+  const today = new Date();
+  const diffTime = today - parsedDate;
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  return diffDays > 0 ? String(diffDays) : '0';
+}
+
 module.exports = async function handler(req, res) {
   // Allow GET and POST for automated Vercel Cron and manual triggers
   if (req.method !== 'POST' && req.method !== 'GET') {
@@ -87,7 +105,7 @@ module.exports = async function handler(req, res) {
     for (const customer of unpaidList) {
       try {
         const totalDue = customer.TotalDue || customer.Amount || '0';
-        const overdueDays = customer.OverdueDays || customer.DueDays || '0';
+        const overdueDays = getOverdueDays(customer.DueDate, customer.OverdueDays || customer.DueDays);
 
         const metaResponse = await axios.post(
           `https://graph.facebook.com/v21.0/${PHONE_NUMBER_ID}/messages`,
@@ -103,7 +121,7 @@ module.exports = async function handler(req, res) {
                 {
                   type: 'body',
                   parameters: [
-                    { type: 'text', text: customer.CustomerName },
+                    { type: 'text', text: customer.CustomerName || 'Valued Customer' },
                     { type: 'text', text: totalDue },
                     { type: 'text', text: overdueDays },
                     { type: 'text', text: COMPANY_UPI_ID }
