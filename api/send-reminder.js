@@ -1,7 +1,6 @@
 // api/send-reminder.js
 const axios = require('axios');
 
-// Helper function to safely parse CSV rows that may contain quotes or internal commas
 function parseCSVLine(text) {
   const result = [];
   let current = '';
@@ -23,12 +22,12 @@ function parseCSVLine(text) {
 }
 
 module.exports = async function handler(req, res) {
-  // Allow manual triggers (POST/GET) or cron jobs
+  // Allow GET and POST for automated Vercel Cron and manual triggers
   if (req.method !== 'POST' && req.method !== 'GET') {
     return res.status(405).json({ success: false, error: 'Method Not Allowed' });
   }
 
-  // Security key check for Vercel Cron or direct calls
+  // Security key verification
   const authHeader = req.headers.authorization;
   const querySecret = req.query.secret;
 
@@ -47,6 +46,7 @@ module.exports = async function handler(req, res) {
   const META_ACCESS_TOKEN = process.env.META_ACCESS_TOKEN;
   const PHONE_NUMBER_ID = '1228998570301220';
   const SHEET_CSV_URL = process.env.GOOGLE_SHEET_CSV_URL;
+  const COMPANY_UPI_ID = 'ksf@hdfcbank'; // Replace with your company UPI ID
 
   if (!META_ACCESS_TOKEN || !SHEET_CSV_URL) {
     return res.status(500).json({
@@ -56,7 +56,7 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    // 1. Fetch live CSV data from published Google Sheet
+    // 1. Fetch live CSV data from Google Sheet
     const sheetResponse = await axios.get(SHEET_CSV_URL);
     const rawRows = sheetResponse.data.split(/\r?\n/).filter(line => line.trim() !== '');
 
@@ -66,7 +66,7 @@ module.exports = async function handler(req, res) {
 
     const headers = parseCSVLine(rawRows[0]);
 
-    // 2. Parse CSV into an array of objects
+    // 2. Parse CSV rows into objects
     const records = rawRows.slice(1).map(row => {
       const values = parseCSVLine(row);
       const entry = {};
@@ -76,16 +76,19 @@ module.exports = async function handler(req, res) {
       return entry;
     });
 
-    // 3. Filter for Unpaid customers with valid phone numbers
+    // 3. Filter for Unpaid records with valid phone numbers
     const unpaidList = records.filter(
       r => r.Status && r.Status.toLowerCase() === 'unpaid' && r.CustomerPhone
     );
 
     const results = [];
 
-    // 4. Send Meta WhatsApp template message for each customer
+    // 4. Dispatch WhatsApp reminder with body parameters
     for (const customer of unpaidList) {
       try {
+        const totalDue = customer.TotalDue || customer.Amount || '0';
+        const overdueDays = customer.OverdueDays || customer.DueDays || '0';
+
         const metaResponse = await axios.post(
           `https://graph.facebook.com/v21.0/${PHONE_NUMBER_ID}/messages`,
           {
@@ -94,28 +97,16 @@ module.exports = async function handler(req, res) {
             to: customer.CustomerPhone,
             type: 'template',
             template: {
-              name: 'payment_reminders',
+              name: 'outstanding_balance_reminder',
               language: { code: 'en_US' },
               components: [
-                {
-                  type: 'header',
-                  parameters: [
-                    {
-                      type: 'document',
-                      document: {
-                        link: customer.PDFLink,
-                        filename: `Invoice_${customer.InvoiceNumber}.pdf`
-                      }
-                    }
-                  ]
-                },
                 {
                   type: 'body',
                   parameters: [
                     { type: 'text', text: customer.CustomerName },
-                    { type: 'text', text: customer.InvoiceNumber },
-                    { type: 'text', text: customer.Amount },
-                    { type: 'text', text: customer.DueDate }
+                    { type: 'text', text: totalDue },
+                    { type: 'text', text: overdueDays },
+                    { type: 'text', text: COMPANY_UPI_ID }
                   ]
                 }
               ]
@@ -131,14 +122,15 @@ module.exports = async function handler(req, res) {
 
         results.push({
           phone: customer.CustomerPhone,
-          invoice: customer.InvoiceNumber,
+          customer: customer.CustomerName,
+          totalDue: totalDue,
           status: 'SENT',
           messageId: metaResponse.data.messages[0].id
         });
       } catch (sendError) {
         results.push({
           phone: customer.CustomerPhone,
-          invoice: customer.InvoiceNumber,
+          customer: customer.CustomerName,
           status: 'FAILED',
           error: sendError.response ? sendError.response.data : sendError.message
         });
