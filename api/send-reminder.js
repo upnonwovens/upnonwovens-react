@@ -92,7 +92,7 @@ module.exports = async function handler(req, res) {
             to: customer.CustomerPhone,
             type: 'template',
             template: {
-              name: 'outstanding_balance_reminder', // Check that this matches the exact name you submitted
+              name: 'outstanding_balance_reminder', // Ensure this matches the exact name in your Template Library
               language: { code: 'en_US' },
               components: [
                 {
@@ -123,12 +123,13 @@ module.exports = async function handler(req, res) {
           messageId: metaResponse.data.messages[0].id
         });
       } catch (sendError) {
-        const errorData = sendError.response ? sendError.response.data : { message: sendError.message };
+        const errorDetails = sendError.response ? sendError.response.data : { message: sendError.message };
+        console.error(`Meta API Error for ${customer.CustomerPhone}:`, JSON.stringify(errorDetails));
         results.push({
           phone: customer.CustomerPhone,
           customer: customerName,
           status: 'FAILED',
-          error: errorData
+          error: errorDetails
         });
       }
     }
