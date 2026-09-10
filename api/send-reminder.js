@@ -21,6 +21,24 @@ function parseCSVLine(text) {
   return result;
 }
 
+function shouldSendReminder(lastSentDateStr, frequencyDaysStr) {
+  const frequencyDays = parseInt(frequencyDaysStr, 10) || 1;
+  if (!lastSentDateStr || lastSentDateStr.trim() === '') {
+    return true;
+  }
+
+  const lastSent = new Date(lastSentDateStr);
+  if (isNaN(lastSent.getTime())) {
+    return true;
+  }
+
+  const today = new Date();
+  const diffTime = today - lastSent;
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+  return diffDays >= frequencyDays;
+}
+
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST' && req.method !== 'GET') {
     return res.status(405).json({ success: false, error: 'Method Not Allowed' });
@@ -45,9 +63,8 @@ module.exports = async function handler(req, res) {
   const PHONE_NUMBER_ID = '1228998570301220';
   const SHEET_CSV_URL = process.env.GOOGLE_SHEET_CSV_URL;
   const COMPANY_UPI_ID = '6306078257.1@hdfc';
-  
-  // Public static URL for the renamed QR code in your public/ folder
   const STATIC_QR_IMAGE_URL = 'https://upnonwovens.in/upi_qr.jpg';
+  const APPS_SCRIPT_URL = process.env.APPS_SCRIPT_WEBAPP_URL;
 
   if (!META_ACCESS_TOKEN || !SHEET_CSV_URL) {
     return res.status(500).json({
@@ -85,6 +102,22 @@ module.exports = async function handler(req, res) {
       const totalDue = customer.TotalDue || customer.Amount || '0';
       const overdueDays = customer.OverdueDays || customer.DueDays || '0';
 
+      const templateToUse = customer.TemplateName && customer.TemplateName.trim() !== ''
+        ? customer.TemplateName.trim()
+        : 'outstanding_balance_reminder';
+
+      const isDueForMessage = shouldSendReminder(customer.LastSentDate, customer.FrequencyDays);
+
+      if (!isDueForMessage) {
+        results.push({
+          phone: customer.CustomerPhone,
+          customer: customerName,
+          status: 'SKIPPED_COOLDOWN',
+          reason: `Frequency cooldown active (${customer.FrequencyDays || 1} day gap). Last sent: ${customer.LastSentDate}`
+        });
+        continue;
+      }
+
       try {
         const metaResponse = await axios.post(
           `https://graph.facebook.com/v21.0/${PHONE_NUMBER_ID}/messages`,
@@ -94,7 +127,7 @@ module.exports = async function handler(req, res) {
             to: customer.CustomerPhone,
             type: 'template',
             template: {
-              name: 'outstanding_balance_reminder',
+              name: templateToUse,
               language: { code: 'en_US' },
               components: [
                 {
@@ -128,19 +161,30 @@ module.exports = async function handler(req, res) {
           }
         );
 
+        // Update the sheet with today's date if Apps Script URL is provided
+        if (APPS_SCRIPT_URL) {
+          try {
+            await axios.post(APPS_SCRIPT_URL, {
+              phone: customer.CustomerPhone
+            });
+          } catch (scriptErr) {
+            console.error('Failed to update LastSentDate in sheet:', scriptErr.message);
+          }
+        }
+
         results.push({
           phone: customer.CustomerPhone,
           customer: customerName,
-          totalDue: totalDue,
+          template: templateToUse,
           status: 'SENT',
           messageId: metaResponse.data.messages[0].id
         });
       } catch (sendError) {
         const errorData = sendError.response ? sendError.response.data : { message: sendError.message };
-        console.error(`Meta API Error for ${customer.CustomerPhone}:`, JSON.stringify(errorData));
         results.push({
           phone: customer.CustomerPhone,
           customer: customerName,
+          template: templateToUse,
           status: 'FAILED',
           error: errorData
         });
