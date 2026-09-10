@@ -161,12 +161,19 @@ module.exports = async function handler(req, res) {
           }
         );
 
-        // Update the sheet with today's date if Apps Script URL is provided
+        // Update the sheet with today's date if Apps Script URL is configured
+        let sheetUpdated = false;
         if (APPS_SCRIPT_URL) {
           try {
-            await axios.post(APPS_SCRIPT_URL, {
-              phone: customer.CustomerPhone
-            });
+            const scriptRes = await axios.post(
+              APPS_SCRIPT_URL,
+              JSON.stringify({ phone: customer.CustomerPhone }),
+              {
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // Ensures Google Apps Script bypasses CORS and parses JSON reliably
+                maxRedirects: 5
+              }
+            );
+            sheetUpdated = scriptRes.data?.updated || false;
           } catch (scriptErr) {
             console.error('Failed to update LastSentDate in sheet:', scriptErr.message);
           }
@@ -177,6 +184,7 @@ module.exports = async function handler(req, res) {
           customer: customerName,
           template: templateToUse,
           status: 'SENT',
+          sheetUpdated: sheetUpdated,
           messageId: metaResponse.data.messages[0].id
         });
       } catch (sendError) {
