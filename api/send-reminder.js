@@ -161,20 +161,22 @@ module.exports = async function handler(req, res) {
           }
         );
 
-        // Update the sheet with today's date if Apps Script URL is configured
+        // Update the sheet with today's date via GET call to bypass Google 302 body-stripping
         let sheetUpdated = false;
+        let sheetError = null;
+
         if (APPS_SCRIPT_URL) {
           try {
-            const scriptRes = await axios.post(
-              APPS_SCRIPT_URL,
-              JSON.stringify({ phone: customer.CustomerPhone }),
-              {
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // Ensures Google Apps Script bypasses CORS and parses JSON reliably
-                maxRedirects: 5
-              }
+            const scriptRes = await axios.get(
+              `${APPS_SCRIPT_URL}?phone=${encodeURIComponent(customer.CustomerPhone)}`,
+              { timeout: 8000 }
             );
             sheetUpdated = scriptRes.data?.updated || false;
+            if (!sheetUpdated && scriptRes.data?.error) {
+              sheetError = scriptRes.data.error;
+            }
           } catch (scriptErr) {
+            sheetError = scriptErr.message;
             console.error('Failed to update LastSentDate in sheet:', scriptErr.message);
           }
         }
@@ -185,6 +187,7 @@ module.exports = async function handler(req, res) {
           template: templateToUse,
           status: 'SENT',
           sheetUpdated: sheetUpdated,
+          sheetError: sheetError,
           messageId: metaResponse.data.messages[0].id
         });
       } catch (sendError) {
