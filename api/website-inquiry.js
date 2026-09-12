@@ -18,8 +18,9 @@ module.exports = async function handler(req, res) {
       cleanPhone = `91${cleanPhone}`;
     }
 
-    const guestName = (name && name.trim()) ? name.trim() : 'Website Guest';
+    const guestName = (name && name.trim()) ? name.trim() : 'Customer';
     const guestEmail = (email && email.trim()) ? email.trim() : 'Not provided';
+    const inquiryMessage = message.trim();
     const RESEND_API_KEY = process.env.RESEND_API_KEY;
     const dynamicReplyTo = `reply+${cleanPhone}@upnonwovens.in`;
 
@@ -64,7 +65,7 @@ module.exports = async function handler(req, res) {
               </table>
               <div style="margin-top: 15px; padding: 14px; background-color: #f8fafc; border-left: 4px solid #16a34a; border-radius: 4px;">
                 <strong style="display: block; margin-bottom: 5px; color: #0f172a;">Inquiry Details:</strong>
-                <p style="margin: 0; font-size: 15px; white-space: pre-wrap;">${message}</p>
+                <p style="margin: 0; font-size: 15px; white-space: pre-wrap;">${inquiryMessage}</p>
               </div>
             </div>
           `
@@ -72,12 +73,17 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    // 2. Dispatch Confirmation WhatsApp Message to Guest
+    // 2. Dispatch Approved Template to the Customer via WhatsApp Cloud API
     const META_ACCESS_TOKEN = process.env.META_ACCESS_TOKEN;
     const PHONE_NUMBER_ID = '1228998570301220';
 
     if (META_ACCESS_TOKEN) {
-      await fetch(`https://graph.facebook.com/v21.0/${PHONE_NUMBER_ID}/messages`, {
+      // Limit inquiry length in template variable to prevent WhatsApp template validation errors
+      const truncatedMessage = inquiryMessage.length > 80 
+        ? inquiryMessage.substring(0, 77) + '...' 
+        : inquiryMessage;
+
+      const metaRes = await fetch(`https://graph.facebook.com/v21.0/${PHONE_NUMBER_ID}/messages`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${META_ACCESS_TOKEN}`,
@@ -87,13 +93,35 @@ module.exports = async function handler(req, res) {
           messaging_product: 'whatsapp',
           recipient_type: 'individual',
           to: cleanPhone,
-          type: 'text',
-          text: {
-            preview_url: false,
-            body: `Hello ${guestName}, thank you for reaching out to Krishna Solar Farms / UP Nonwovens. We have received your inquiry: "${message}". Our executive will reply to you shortly here on WhatsApp!`
+          type: 'template',
+          template: {
+            name: 'website_inquiry_ack',
+            language: { code: 'en' },
+            components: [
+              {
+                type: 'body',
+                parameters: [
+                  {
+                    type: 'text',
+                    text: guestName
+                  },
+                  {
+                    type: 'text',
+                    text: truncatedMessage
+                  }
+                ]
+              }
+            ]
           }
         })
       });
+
+      const metaData = await metaRes.json();
+      if (!metaRes.ok) {
+        console.error('Meta Template Dispatch Error:', JSON.stringify(metaData));
+      } else {
+        console.log('Template dispatched to WhatsApp successfully:', metaData);
+      }
     }
 
     return res.status(200).json({ success: true });
