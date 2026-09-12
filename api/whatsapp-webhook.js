@@ -1,5 +1,4 @@
 // api/whatsapp-webhook.js
-
 const VERIFY_TOKEN = process.env.META_WEBHOOK_VERIFY_TOKEN || 'ksf_webhook_secret_2026';
 
 module.exports = async function handler(req, res) {
@@ -47,9 +46,11 @@ module.exports = async function handler(req, res) {
           messageContent = `[Sent a ${messageObj.type} message]`;
         }
 
-        // Send Email via Resend REST API (Zero packages needed)
         const RESEND_API_KEY = process.env.RESEND_API_KEY;
         if (RESEND_API_KEY) {
+          // Format unique reply-to address containing the customer's phone number
+          const dynamicReplyTo = `reply+${senderPhone}@upnonwovens.in`;
+
           await fetch('https://api.resend.com/emails', {
             method: 'POST',
             headers: {
@@ -57,13 +58,17 @@ module.exports = async function handler(req, res) {
               'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-              from: 'KSF WhatsApp Alerts <onboarding@resend.dev>',
+              from: 'KSF WhatsApp Alerts <alerts@upnonwovens.in>', // Once domain verified; or 'KSF WhatsApp Alerts <onboarding@resend.dev>'
               to: ['upnonwovens@gmail.com'],
+              reply_to: dynamicReplyTo,
               subject: `New WhatsApp Reply from ${senderName} (+${senderPhone})`,
               html: `
                 <div style="font-family: Arial, sans-serif; padding: 20px; color: #1e293b;">
                   <h2 style="color: #0f172a; margin-bottom: 5px;">New WhatsApp Customer Message</h2>
                   <p style="font-size: 14px; color: #64748b; margin-top: 0;">Krishna Solar Farms WhatsApp Notification System</p>
+                  <p style="font-size: 13px; color: #2563eb; background: #eff6ff; padding: 8px 12px; border-radius: 6px; display: inline-block;">
+                    💡 <strong>Tip:</strong> You can reply directly to this email from Gmail to send a WhatsApp message to this customer.
+                  </p>
                   <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 15px 0;" />
                   <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
                     <tr>
