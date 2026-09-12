@@ -39,7 +39,8 @@ const Layout = ({ children, currentTab, onTabClick }) => {
           setFormData({ name: '', phone: '', email: '', message: '' });
         }, 2000);
       } else {
-        alert('Failed to transmit inquiry. Please verify your contact number and try again.');
+        const errData = await response.json().catch(() => ({}));
+        alert(errData.error || 'Failed to transmit inquiry. Please verify your contact number and try again.');
       }
     } catch (err) {
       console.error('Inquiry submission error:', err);
