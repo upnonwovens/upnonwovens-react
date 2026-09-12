@@ -6,6 +6,7 @@ const Layout = ({ children, currentTab, onTabClick }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [formData, setFormData] = useState({ name: '', phone: '', email: '', message: '' });
   const [submitStatus, setSubmitStatus] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Navigation Order
   const navItems = [
@@ -17,25 +18,35 @@ const Layout = ({ children, currentTab, onTabClick }) => {
     { id: 'contact', label: 'Contact Us' }
   ];
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const targetWhatsAppNumber = "916306078257";
-    const textMessage = `*New KSF Fabric Portal Enquiry*\n` +
-                        `-------------------------\n` +
-                        `• *Name:* ${formData.name}\n` +
-                        `• *Phone:* ${formData.phone}\n` +
-                        `• *Email:* ${formData.email}\n\n` +
-                        `*Message:* ${formData.message}`;
-    
-    const whatsappApiUrl = `https://api.whatsapp.com/send?phone=${targetWhatsAppNumber}&text=${encodeURIComponent(textMessage)}`;
-    window.open(whatsappApiUrl, '_blank');
-    
-    setSubmitStatus(true);
-    setTimeout(() => {
-      setSubmitStatus(false);
-      setIsModalOpen(false);
-      setFormData({ name: '', phone: '', email: '', message: '' });
-    }, 1000);
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch('/api/website-inquiry', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        setSubmitStatus(true);
+        setTimeout(() => {
+          setSubmitStatus(false);
+          setIsModalOpen(false);
+          setFormData({ name: '', phone: '', email: '', message: '' });
+        }, 2000);
+      } else {
+        alert('Failed to transmit inquiry. Please verify your contact number and try again.');
+      }
+    } catch (err) {
+      console.error('Inquiry submission error:', err);
+      alert('Unable to connect to the server. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -190,7 +201,9 @@ const Layout = ({ children, currentTab, onTabClick }) => {
                 <input type="tel" placeholder="Contact Number" required value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '15px', boxSizing: 'border-box' }} />
                 <input type="email" placeholder="Email Address" required value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '15px', boxSizing: 'border-box' }} />
                 <textarea rows="4" placeholder="Enquiry Details" required value={formData.message} onChange={(e) => setFormData({...formData, message: e.target.value})} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '15px', boxSizing: 'border-box', resize: 'none' }}></textarea>
-                <button type="submit" style={{ backgroundColor: '#2563eb', color: '#ffffff', padding: '14px', borderRadius: '8px', border: 'none', fontWeight: '700', cursor: 'pointer', fontSize: '15px' }}>Transmit via WhatsApp API</button>
+                <button type="submit" disabled={isSubmitting} style={{ backgroundColor: '#2563eb', color: '#ffffff', padding: '14px', borderRadius: '8px', border: 'none', fontWeight: '700', cursor: isSubmitting ? 'not-allowed' : 'pointer', fontSize: '15px' }}>
+                  {isSubmitting ? 'Processing...' : 'Transmit via WhatsApp API'}
+                </button>
               </form>
             )}
           </div>
