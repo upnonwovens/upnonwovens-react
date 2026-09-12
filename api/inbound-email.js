@@ -7,10 +7,15 @@ function cleanEmailBody(text) {
 
   for (const line of lines) {
     const trimmed = line.trim();
+    // Stop at email quotes or business signature markers
     if (
       (trimmed.startsWith('On ') && trimmed.includes('wrote:')) ||
       trimmed.startsWith('>') ||
       trimmed.startsWith('---') ||
+      trimmed.startsWith('--') ||
+      trimmed.toLowerCase().startsWith('thanks & regards') ||
+      trimmed.toLowerCase().startsWith('thanks and regards') ||
+      trimmed.toLowerCase().startsWith('regards,') ||
       trimmed.startsWith('Sent from my iPhone') ||
       trimmed.startsWith('Get Outlook for')
     ) {
@@ -30,10 +35,9 @@ module.exports = async function handler(req, res) {
     const body = req.body || {};
     console.log('Incoming Resend Webhook Body:', JSON.stringify(body));
 
-    // Resend webhook events often nest information inside 'data'
     const emailData = body.data || body;
 
-    // 1. Extract recipient field from various possible formats
+    // 1. Extract recipient phone number from 'to' or stringified payload
     let recipientStr = '';
     if (Array.isArray(emailData.to)) {
       recipientStr = emailData.to.map(item => (typeof item === 'string' ? item : item.email || '')).join(' ');
@@ -41,7 +45,6 @@ module.exports = async function handler(req, res) {
       recipientStr = emailData.to;
     }
 
-    // Fallback: If not found in emailData.to, search raw stringified body
     let match = recipientStr.match(/reply\+(\d+)@/);
     if (!match) {
       const fullPayloadStr = JSON.stringify(body);
@@ -55,8 +58,30 @@ module.exports = async function handler(req, res) {
 
     const destinationPhone = match[1];
 
-    // 2. Extract message body across text or html
+    // 2. Fetch full email body from Resend if not directly in the webhook payload
     let rawBody = emailData.text || '';
+
+    if (!rawBody && emailData.email_id) {
+      console.log(`Fetching email body for email_id: ${emailData.email_id}`);
+      const RESEND_API_KEY = process.env.RESEND_API_KEY;
+      if (RESEND_API_KEY) {
+        const emailRes = await fetch(`https://api.resend.com/emails/${emailData.email_id}`, {
+          headers: {
+            'Authorization': `Bearer ${RESEND_API_KEY}`
+          }
+        });
+        if (emailRes.ok) {
+          const emailFull = await emailRes.json();
+          rawBody = emailFull.text || '';
+          if (!rawBody && emailFull.html) {
+            rawBody = emailFull.html.replace(/<[^>]+>/g, ' ');
+          }
+        } else {
+          console.error('Failed to fetch email from Resend API:', await emailRes.text());
+        }
+      }
+    }
+
     if (!rawBody && emailData.html) {
       rawBody = emailData.html.replace(/<[^>]+>/g, ' ');
     }
@@ -64,7 +89,7 @@ module.exports = async function handler(req, res) {
     const replyMessage = cleanEmailBody(rawBody);
 
     if (!replyMessage) {
-      console.warn('Extracted email body was empty.');
+      console.warn('Extracted email body was empty after parsing.');
       return res.status(200).json({ status: 'EMPTY_REPLY' });
     }
 
