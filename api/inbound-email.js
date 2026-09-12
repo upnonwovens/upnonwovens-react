@@ -7,7 +7,7 @@ function cleanEmailBody(text) {
 
   for (const line of lines) {
     const trimmed = line.trim();
-    // Stop at email quotes or business signature markers
+    // Strip email thread quotes and signatures
     if (
       (trimmed.startsWith('On ') && trimmed.includes('wrote:')) ||
       trimmed.startsWith('>') ||
@@ -58,18 +58,21 @@ module.exports = async function handler(req, res) {
 
     const destinationPhone = match[1];
 
-    // 2. Fetch full email body from Resend if not directly in the webhook payload
+    // 2. Fetch full email body from Resend Inbound Receiving endpoint
     let rawBody = emailData.text || '';
+    const emailId = emailData.email_id || emailData.id;
 
-    if (!rawBody && emailData.email_id) {
-      console.log(`Fetching email body for email_id: ${emailData.email_id}`);
+    if (!rawBody && emailId) {
+      console.log(`Fetching inbound email body for id: ${emailId}`);
       const RESEND_API_KEY = process.env.RESEND_API_KEY;
       if (RESEND_API_KEY) {
-        const emailRes = await fetch(`https://api.resend.com/emails/${emailData.email_id}`, {
+        // Inbound emails are retrieved from /emails/receiving/{id}
+        const emailRes = await fetch(`https://api.resend.com/emails/receiving/${emailId}`, {
           headers: {
             'Authorization': `Bearer ${RESEND_API_KEY}`
           }
         });
+
         if (emailRes.ok) {
           const emailFull = await emailRes.json();
           rawBody = emailFull.text || '';
@@ -77,7 +80,21 @@ module.exports = async function handler(req, res) {
             rawBody = emailFull.html.replace(/<[^>]+>/g, ' ');
           }
         } else {
-          console.error('Failed to fetch email from Resend API:', await emailRes.text());
+          // Fallback check to /emails/{id} in case payload was mirrored
+          const fallbackRes = await fetch(`https://api.resend.com/emails/${emailId}`, {
+            headers: {
+              'Authorization': `Bearer ${RESEND_API_KEY}`
+            }
+          });
+          if (fallbackRes.ok) {
+            const fallbackData = await fallbackRes.json();
+            rawBody = fallbackData.text || '';
+            if (!rawBody && fallbackData.html) {
+              rawBody = fallbackData.html.replace(/<[^>]+>/g, ' ');
+            }
+          } else {
+            console.error('Failed to fetch email from Resend API (Receiving & Default):', await emailRes.text());
+          }
         }
       }
     }
