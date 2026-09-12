@@ -15,22 +15,38 @@ module.exports = async function handler(req, res) {
     return res.status(403).send('Verification token mismatch');
   }
 
-  // 2. Inbound Customer Replies (POST)
+  // 2. Inbound Events Receiver (POST)
   if (req.method === 'POST') {
     try {
       const body = req.body;
+      const changeValue = body?.entry?.[0]?.changes?.[0]?.value;
 
-      if (
-        body &&
-        body.object &&
-        body.entry &&
-        body.entry[0]?.changes &&
-        body.entry[0].changes[0]?.value?.messages
-      ) {
-        const messageObj = body.entry[0].changes[0].value.messages[0];
-        const contactObj = body.entry[0].changes[0].value.contacts
-          ? body.entry[0].changes[0].value.contacts[0]
-          : null;
+      // -------------------------------------------------------------
+      // A. Handle Meta Delivery Status Callbacks (sent, delivered, failed)
+      // -------------------------------------------------------------
+      if (changeValue?.statuses && changeValue.statuses.length > 0) {
+        const statusItem = changeValue.statuses[0];
+        const recipient = statusItem.recipient_id;
+        const statusType = statusItem.status;
+
+        console.log(`[WhatsApp Status] Recipient: +${recipient} | Status: ${statusType}`);
+
+        if (statusItem.errors && statusItem.errors.length > 0) {
+          console.error(
+            `[WhatsApp Delivery Error for +${recipient}]:`,
+            JSON.stringify(statusItem.errors, null, 2)
+          );
+        }
+
+        return res.status(200).send('EVENT_RECEIVED');
+      }
+
+      // -------------------------------------------------------------
+      // B. Handle Inbound Customer Replies
+      // -------------------------------------------------------------
+      if (changeValue?.messages && changeValue.messages.length > 0) {
+        const messageObj = changeValue.messages[0];
+        const contactObj = changeValue.contacts ? changeValue.contacts[0] : null;
 
         const senderPhone = messageObj.from || 'Unknown Number';
         const senderName = contactObj?.profile?.name || 'Customer';
@@ -46,6 +62,8 @@ module.exports = async function handler(req, res) {
           messageContent = `[Sent a ${messageObj.type} message]`;
         }
 
+        console.log(`[Incoming Message] From: ${senderName} (+${senderPhone}) | Text: ${messageContent}`);
+
         const RESEND_API_KEY = process.env.RESEND_API_KEY;
         if (RESEND_API_KEY) {
           // Format unique reply-to address containing the customer's phone number
@@ -58,7 +76,7 @@ module.exports = async function handler(req, res) {
               'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-              from: 'KSF WhatsApp Alerts <alerts@upnonwovens.in>', // Once domain verified; or 'KSF WhatsApp Alerts <onboarding@resend.dev>'
+              from: 'KSF WhatsApp Alerts <alerts@upnonwovens.in>',
               to: ['upnonwovens@gmail.com'],
               reply_to: dynamicReplyTo,
               subject: `New WhatsApp Reply from ${senderName} (+${senderPhone})`,
