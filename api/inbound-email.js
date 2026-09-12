@@ -2,16 +2,17 @@
 
 function cleanEmailBody(text) {
   if (!text) return '';
-  // Strip off standard email reply quotes (Gmail, Apple Mail, Outlook)
   const lines = text.split(/\r?\n/);
   const cleanLines = [];
 
   for (const line of lines) {
+    const trimmed = line.trim();
     if (
-      line.trim().startsWith('On ') && line.includes('wrote:') ||
-      line.trim().startsWith('>') ||
-      line.trim().startsWith('---') ||
-      line.trim().startsWith('Sent from my iPhone')
+      (trimmed.startsWith('On ') && trimmed.includes('wrote:')) ||
+      trimmed.startsWith('>') ||
+      trimmed.startsWith('---') ||
+      trimmed.startsWith('Sent from my iPhone') ||
+      trimmed.startsWith('Get Outlook for')
     ) {
       break;
     }
@@ -26,30 +27,52 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    const payload = req.body;
+    const body = req.body || {};
+    console.log('Incoming Resend Webhook Body:', JSON.stringify(body));
 
-    // Resend sends email metadata and content in the webhook payload
-    const recipientEmail = payload.to ? (Array.isArray(payload.to) ? payload.to[0] : payload.to) : '';
-    const rawText = payload.text || payload.html || '';
+    // Resend webhook events often nest information inside 'data'
+    const emailData = body.data || body;
 
-    // Extract destination phone number from reply+<PHONE>@upnonwovens.in
-    const match = recipientEmail.match(/reply\+(\d+)@/);
+    // 1. Extract recipient field from various possible formats
+    let recipientStr = '';
+    if (Array.isArray(emailData.to)) {
+      recipientStr = emailData.to.map(item => (typeof item === 'string' ? item : item.email || '')).join(' ');
+    } else if (typeof emailData.to === 'string') {
+      recipientStr = emailData.to;
+    }
+
+    // Fallback: If not found in emailData.to, search raw stringified body
+    let match = recipientStr.match(/reply\+(\d+)@/);
     if (!match) {
-      console.log('No valid phone number found in recipient:', recipientEmail);
-      return res.status(200).send('IGNORED_NOT_A_REPLY');
+      const fullPayloadStr = JSON.stringify(body);
+      match = fullPayloadStr.match(/reply\+(\d+)@/);
+    }
+
+    if (!match) {
+      console.warn('No valid phone number found in payload:', JSON.stringify(emailData));
+      return res.status(200).json({ status: 'IGNORED_NO_PHONE_IN_RECIPIENT' });
     }
 
     const destinationPhone = match[1];
-    const replyMessage = cleanEmailBody(rawText);
+
+    // 2. Extract message body across text or html
+    let rawBody = emailData.text || '';
+    if (!rawBody && emailData.html) {
+      rawBody = emailData.html.replace(/<[^>]+>/g, ' ');
+    }
+
+    const replyMessage = cleanEmailBody(rawBody);
 
     if (!replyMessage) {
-      return res.status(200).send('EMPTY_REPLY');
+      console.warn('Extracted email body was empty.');
+      return res.status(200).json({ status: 'EMPTY_REPLY' });
     }
+
+    console.log(`Dispatching reply to WhatsApp (+${destinationPhone}): "${replyMessage}"`);
 
     const META_ACCESS_TOKEN = process.env.META_ACCESS_TOKEN;
     const PHONE_NUMBER_ID = '1228998570301220';
 
-    // Dispatch standard text message via WhatsApp Cloud API within the 24-hour service window
     const metaResponse = await fetch(
       `https://graph.facebook.com/v21.0/${PHONE_NUMBER_ID}/messages`,
       {
@@ -74,11 +97,12 @@ module.exports = async function handler(req, res) {
     const metaData = await metaResponse.json();
 
     if (!metaResponse.ok) {
-      console.error('Meta Send Error:', JSON.stringify(metaData));
+      console.error('Meta Dispatch Error:', JSON.stringify(metaData));
       return res.status(500).json({ error: 'Meta dispatch failed', details: metaData });
     }
 
-    return res.status(200).json({ success: true, to: destinationPhone, metaData });
+    console.log('Successfully sent to WhatsApp:', metaData);
+    return res.status(200).json({ success: true, destinationPhone, metaData });
   } catch (error) {
     console.error('Inbound Email Webhook Error:', error.message);
     return res.status(500).json({ error: error.message });
