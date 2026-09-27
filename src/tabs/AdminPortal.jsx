@@ -33,7 +33,11 @@ const AdminPortal = () => {
       const response = await axios.get(`/api/send-reminder?secret=${encodeURIComponent(password)}`);
       setResults(response.data);
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to dispatch reminders. Check your secret key.');
+      const serverErr = err.response?.data?.error;
+      const displayMsg = typeof serverErr === 'object'
+        ? JSON.stringify(serverErr)
+        : (serverErr || 'Failed to dispatch reminders. Check your secret key.');
+      setError(displayMsg);
     } finally {
       setLoading(false);
     }
@@ -79,8 +83,13 @@ const AdminPortal = () => {
         });
       }
     } catch (err) {
+      const serverErr = err.response?.data?.error;
+      const displayMsg = typeof serverErr === 'object'
+        ? JSON.stringify(serverErr)
+        : (serverErr || err.message);
+
       setSyncFeedback({
-        text: `Sync error: ${err.response?.data?.error || err.message}`,
+        text: `Sync error: ${displayMsg}`,
         type: 'error',
       });
     } finally {
@@ -241,15 +250,32 @@ const AdminPortal = () => {
               <p style={{ margin: '0 0 12px 0', fontSize: '14px', color: '#475569' }}>
                 <strong>Total Unpaid Identified:</strong> {results.totalUnpaid}
               </p>
-              <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
+              <div style={{ maxHeight: '250px', overflowY: 'auto' }}>
                 {results.processed?.length === 0 ? (
-                  <p style={{ margin: 0, fontSize: '13px', color: '#64748b' }}>No unpaid records found to send.</p>
+                  <p style={{ margin: 0, fontSize: '13px', color: '#64748b' }}>No eligible records found to send.</p>
                 ) : (
-                  results.processed?.map((item, idx) => (
-                    <div key={idx} style={{ fontSize: '13px', color: item.status === 'SENT' ? '#16a34a' : '#dc2626', marginBottom: '6px' }}>
-                      • Invoice #{item.invoice} ({item.phone}): <strong>{item.status}</strong>
-                    </div>
-                  ))
+                  results.processed?.map((item, idx) => {
+                    const isSuccess = item.status === 'SENT';
+                    const errorDetails = item.error 
+                      ? (item.error.error?.message || item.error.message || JSON.stringify(item.error))
+                      : '';
+
+                    return (
+                      <div key={idx} style={{ fontSize: '13px', color: isSuccess ? '#16a34a' : '#dc2626', marginBottom: '8px' }}>
+                        • {item.customer ? `${item.customer} ` : ''}({item.phone}): <strong>{item.status}</strong>
+                        {!isSuccess && errorDetails && (
+                          <div style={{ fontSize: '12px', color: '#b91c1c', marginLeft: '12px', marginTop: '2px', wordBreak: 'break-word' }}>
+                            Reason: {errorDetails}
+                          </div>
+                        )}
+                        {!isSuccess && item.reason && (
+                          <div style={{ fontSize: '12px', color: '#64748b', marginLeft: '12px', marginTop: '2px' }}>
+                            {item.reason}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })
                 )}
               </div>
             </div>
