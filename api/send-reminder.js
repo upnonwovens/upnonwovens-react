@@ -2,23 +2,28 @@
 const { google } = require('googleapis');
 const axios = require('axios');
 
-function cleanParam(value) {
-  const text = String(value || '');
-  return text.replace(/[\r\n\t]+/g, ' ').replace(/\s+/g, ' ').trim();
+function normalizeKey(str) {
+  if (!str) return '';
+  return String(str)
+    .toLowerCase()
+    .replace(/^customer:\s*/i, '')
+    .replace(/\(\d+\)/g, '') // remove (919756237449)
+    .replace(/[^a-z0-9]/g, '') // keep alphanumeric only
+    .trim();
 }
 
-function formatInvoicesInlineSummary(invoices) {
+function formatInvoicesSummary(invoices) {
   if (!invoices || invoices.length === 0) {
     return '1. Ledger Dues • Amount Pending';
   }
-  const items = invoices.slice(0, 10).map((inv, idx) => {
+  // Up to 10 invoices formatted with clean single line breaks
+  return invoices.slice(0, 10).map((inv, idx) => {
     const bDate = String(inv.date || '').substring(0, 10);
     const bNo = String(inv.invoiceNo || 'N/A').trim();
     const amt = inv.amount || '0';
     const days = inv.dueDays || '0';
-    return `${idx + 1}. Inv #${bNo} (${bDate}) • Amount: ₹${amt} • Age: ${days} days overdue`;
-  });
-  return cleanParam(items.join(' | '));
+    return `${idx + 1}. Inv #${bNo} (${bDate}) • ₹${amt} • ${days}d overdue`;
+  }).join('\n');
 }
 
 function shouldSendReminder(lastSentDateStr, frequencyDaysStr) {
@@ -53,15 +58,15 @@ async function getSheetsClient() {
 
 function parseFifoInvoices(fifoRows) {
   const customerInvoices = {};
-  let currentCustomerKey = '';
+  let currentKey = '';
 
   for (const row of fifoRows) {
     const col0 = String(row[0] || '').trim();
 
     if (col0.toLowerCase().startsWith('customer:')) {
-      currentCustomerKey = col0.replace(/^customer:\s*/i, '').trim().toLowerCase();
-      if (!customerInvoices[currentCustomerKey]) {
-        customerInvoices[currentCustomerKey] = [];
+      currentKey = normalizeKey(col0);
+      if (currentKey && !customerInvoices[currentKey]) {
+        customerInvoices[currentKey] = [];
       }
       continue;
     }
@@ -70,8 +75,9 @@ function parseFifoInvoices(fifoRows) {
       continue;
     }
 
-    if (currentCustomerKey && row[1]) {
-      customerInvoices[currentCustomerKey].push({
+    // Row layout: [Inv. Date, Invoice No., Amount (Rs.), Due Date, Date (As on), Due Days, Party / Phone, Status]
+    if (currentKey && row[1]) {
+      customerInvoices[currentKey].push({
         date: col0,
         invoiceNo: String(row[1] || '').trim(),
         amount: String(row[2] || '0').trim(),
@@ -175,30 +181,26 @@ module.exports = async function handler(req, res) {
         continue;
       }
 
-      // Find itemized FIFO invoices for this customer
-      const lookupKeyWithPhone = `${customerName} (${formattedPhone})`.toLowerCase();
-      const lookupKeyNameOnly = customerName.toLowerCase();
-      const openInvoices = fifoMap[lookupKeyWithPhone] || fifoMap[lookupKeyNameOnly] || [];
-
-      // Format inline summary avoiding newline characters (Rule #132018)
-      const invoiceSummary = formatInvoicesInlineSummary(openInvoices);
+      // Exact normalized name lookup
+      const lookupKey = normalizeKey(customerName);
+      const openInvoices = fifoMap[lookupKey] || [];
+      const invoiceSummary = formatInvoicesSummary(openInvoices);
 
       let templatePayload;
 
-      // Matches the exact 5-parameter payload from whatsapp_service.py
-      if (templateToUse === 'customer_statement_dispatch') {
+      if (templateToUse === 'customer_statement_dispatch' || templateToUse === 'ksf_statement_v2') {
         templatePayload = {
-          name: 'customer_statement_dispatch',
+          name: templateToUse,
           language: { code: 'en_US' },
           components: [
             {
               type: 'body',
               parameters: [
-                { type: 'text', text: cleanParam(customerName) },
+                { type: 'text', text: customerName },
                 { type: 'text', text: invoiceSummary },
                 { type: 'text', text: formattedTotalDue },
-                { type: 'text', text: cleanParam(SUPPORT_LINK) },
-                { type: 'text', text: cleanParam(COMPANY_UPI_ID) }
+                { type: 'text', text: SUPPORT_LINK },
+                { type: 'text', text: COMPANY_UPI_ID }
               ]
             }
           ]
@@ -212,35 +214,30 @@ module.exports = async function handler(req, res) {
             {
               type: 'body',
               parameters: [
-                { type: 'text', text: cleanParam(customerName) },
-                { type: 'text', text: 'Krishna Solar Farms Pvt Ltd' },
+                { type: 'text', text: customerName },
+                { type: 'text', text: 'KSF Non-Woven Fabric' },
                 { type: 'text', text: formattedTotalDue },
                 { type: 'text', text: String(oldestDays) },
-                { type: 'text', text: cleanParam(SUPPORT_LINK) },
-                { type: 'text', text: cleanParam(COMPANY_UPI_ID) }
+                { type: 'text', text: SUPPORT_LINK },
+                { type: 'text', text: COMPANY_UPI_ID }
               ]
             }
           ]
         };
       } else {
-        // Fallback for legacy 4-variable template (outstanding_balance_reminder)
+        // Fallback for legacy 4-variable template
         templatePayload = {
           name: templateToUse,
           language: { code: 'en_US' },
           components: [
             {
               type: 'header',
-              parameters: [
-                {
-                  type: 'image',
-                  image: { link: STATIC_QR_IMAGE_URL }
-                }
-              ]
+              parameters: [{ type: 'image', image: { link: STATIC_QR_IMAGE_URL } }]
             },
             {
               type: 'body',
               parameters: [
-                { type: 'text', text: cleanParam(customerName) },
+                { type: 'text', text: customerName },
                 { type: 'text', text: formattedTotalDue },
                 { type: 'text', text: String(overdueDays) },
                 { type: 'text', text: COMPANY_UPI_ID }
