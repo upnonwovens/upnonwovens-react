@@ -9,6 +9,11 @@ const AdminPortal = () => {
   const [results, setResults] = useState(null);
   const [error, setError] = useState('');
 
+  // Tally Sync States
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncFeedback, setSyncFeedback] = useState({ text: '', type: '' });
+
   const handlePasswordSubmit = (e) => {
     e.preventDefault();
     if (!password.trim()) {
@@ -31,6 +36,55 @@ const AdminPortal = () => {
       setError(err.response?.data?.error || 'Failed to dispatch reminders. Check your secret key.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleFileChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setSelectedFile(e.target.files[0]);
+      setSyncFeedback({ text: '', type: '' });
+    }
+  };
+
+  const handleTallyUpload = async (e) => {
+    e.preventDefault();
+    if (!selectedFile) {
+      alert('Please choose an exported Tally Excel file first.');
+      return;
+    }
+
+    setIsSyncing(true);
+    setSyncFeedback({ text: 'Parsing FIFO invoices & syncing Google Sheet...', type: 'info' });
+
+    try {
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+
+      const response = await axios.post(`/api/sync-tally?secret=${encodeURIComponent(password)}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      if (response.status === 200) {
+        setSyncFeedback({
+          text: `✓ Success: ${response.data.message || 'Synced successfully!'}`,
+          type: 'success',
+        });
+        setSelectedFile(null);
+      } else {
+        setSyncFeedback({
+          text: `Sync failed: ${response.data.error || 'Server error occurred.'}`,
+          type: 'error',
+        });
+      }
+    } catch (err) {
+      setSyncFeedback({
+        text: `Sync error: ${err.response?.data?.error || err.message}`,
+        type: 'error',
+      });
+    } finally {
+      setIsSyncing(false);
     }
   };
 
@@ -90,22 +144,90 @@ const AdminPortal = () => {
             ✓ Authenticated successfully.
           </div>
 
-          <button
-            onClick={handleSendBatch}
-            disabled={loading}
-            style={{
-              padding: '14px',
-              backgroundColor: loading ? '#94a3b8' : '#2563eb',
-              color: '#ffffff',
-              border: 'none',
-              borderRadius: '8px',
-              fontWeight: '700',
-              cursor: loading ? 'not-allowed' : 'pointer',
-              fontSize: '15px'
-            }}
-          >
-            {loading ? 'Dispatching WhatsApp Reminders...' : 'Send Overdue Reminders Now'}
-          </button>
+          {/* Section 1: Tally FIFO Ledger Sync */}
+          <div style={{ padding: '20px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px' }}>
+            <h3 style={{ margin: '0 0 6px 0', color: '#0f172a', fontSize: '16px', fontWeight: '700' }}>
+              1. Sync Tally Ledger (FIFO Distribution)
+            </h3>
+            <p style={{ margin: '0 0 14px 0', fontSize: '13px', color: '#64748b' }}>
+              Upload your raw Tally Excel export (.xlsx). This parses FIFO settlements, refreshes <code>Pending_Invoices_FIFO</code>, and updates <code>Payment Reminders</code> while preserving previously set frequency days and last sent timestamps.
+            </p>
+
+            <form onSubmit={handleTallyUpload} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <input
+                type="file"
+                accept=".xlsx, .xls"
+                onChange={handleFileChange}
+                style={{
+                  fontSize: '13px',
+                  color: '#334155',
+                  padding: '8px',
+                  background: '#ffffff',
+                  border: '1px dashed #cbd5e1',
+                  borderRadius: '6px'
+                }}
+              />
+
+              <button
+                type="submit"
+                disabled={isSyncing || !selectedFile}
+                style={{
+                  padding: '12px',
+                  backgroundColor: isSyncing || !selectedFile ? '#94a3b8' : '#059669',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontWeight: '700',
+                  cursor: isSyncing || !selectedFile ? 'not-allowed' : 'pointer',
+                  fontSize: '14px'
+                }}
+              >
+                {isSyncing ? 'Processing FIFO Calculations...' : 'Upload & Sync with Google Sheets'}
+              </button>
+            </form>
+
+            {syncFeedback.text && (
+              <div style={{
+                marginTop: '12px',
+                padding: '10px 14px',
+                borderRadius: '6px',
+                fontSize: '13px',
+                background: syncFeedback.type === 'success' ? '#f0fdf4' : (syncFeedback.type === 'error' ? '#fef2f2' : '#eff6ff'),
+                color: syncFeedback.type === 'success' ? '#166534' : (syncFeedback.type === 'error' ? '#dc2626' : '#2563eb'),
+                border: `1px solid ${syncFeedback.type === 'success' ? '#bbf7d0' : (syncFeedback.type === 'error' ? '#fecaca' : '#bfdbfe')}`
+              }}>
+                {syncFeedback.text}
+              </div>
+            )}
+          </div>
+
+          {/* Section 2: Dispatch WhatsApp Batch Reminders */}
+          <div style={{ padding: '20px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px' }}>
+            <h3 style={{ margin: '0 0 6px 0', color: '#0f172a', fontSize: '16px', fontWeight: '700' }}>
+              2. Manual WhatsApp Batch Dispatch
+            </h3>
+            <p style={{ margin: '0 0 14px 0', fontSize: '13px', color: '#64748b' }}>
+              Dispatches WhatsApp templates to all eligible overdue accounts whose frequency cooldown has expired.
+            </p>
+
+            <button
+              onClick={handleSendBatch}
+              disabled={loading}
+              style={{
+                width: '100%',
+                padding: '14px',
+                backgroundColor: loading ? '#94a3b8' : '#2563eb',
+                color: '#ffffff',
+                border: 'none',
+                borderRadius: '8px',
+                fontWeight: '700',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                fontSize: '15px'
+              }}
+            >
+              {loading ? 'Dispatching WhatsApp Reminders...' : 'Send Overdue Reminders Now'}
+            </button>
+          </div>
 
           {error && (
             <div style={{ padding: '12px', background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', borderRadius: '8px', fontSize: '14px' }}>
