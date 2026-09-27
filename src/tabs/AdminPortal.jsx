@@ -193,6 +193,27 @@ const AdminPortal = () => {
               >
                 {isSyncing ? 'Processing FIFO Calculations...' : 'Upload & Sync with Google Sheets'}
               </button>
+
+              <div style={{ textAlign: 'center', marginTop: '4px' }}>
+                <a
+                  href="https://docs.google.com/spreadsheets/d/15OfKs2bW6PXI7R_g5au0W0ZtYiTrIzyt9d1-KQCLif0/edit?gid=881065382#gid=881065382"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    color: '#2563eb',
+                    fontSize: '13px',
+                    fontWeight: '600',
+                    textDecoration: 'none',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px'
+                  }}
+                  onMouseOver={(e) => (e.target.style.textDecoration = 'underline')}
+                  onMouseOut={(e) => (e.target.style.textDecoration = 'none')}
+                >
+                  Open KSF Payment Reminders Google Sheet ↗
+                </a>
+              </div>
             </form>
 
             {syncFeedback.text && (
