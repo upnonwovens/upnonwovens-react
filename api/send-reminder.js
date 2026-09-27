@@ -2,6 +2,25 @@
 const { google } = require('googleapis');
 const axios = require('axios');
 
+function cleanParam(value) {
+  const text = String(value || '');
+  return text.replace(/[\r\n\t]+/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function formatInvoicesInlineSummary(invoices) {
+  if (!invoices || invoices.length === 0) {
+    return '1. Ledger Dues • Amount Pending';
+  }
+  const items = invoices.slice(0, 10).map((inv, idx) => {
+    const bDate = String(inv.date || '').substring(0, 10);
+    const bNo = String(inv.invoiceNo || 'N/A').trim();
+    const amt = inv.amount || '0';
+    const days = inv.dueDays || '0';
+    return `${idx + 1}. Inv #${bNo} (${bDate}) • Amount: ₹${amt} • Age: ${days} days overdue`;
+  });
+  return cleanParam(items.join(' | '));
+}
+
 function shouldSendReminder(lastSentDateStr, frequencyDaysStr) {
   const frequencyDays = parseInt(frequencyDaysStr, 10) || 1;
   if (!lastSentDateStr || String(lastSentDateStr).trim() === '') {
@@ -32,6 +51,38 @@ async function getSheetsClient() {
   return google.sheets({ version: 'v4', auth });
 }
 
+function parseFifoInvoices(fifoRows) {
+  const customerInvoices = {};
+  let currentCustomerKey = '';
+
+  for (const row of fifoRows) {
+    const col0 = String(row[0] || '').trim();
+
+    if (col0.toLowerCase().startsWith('customer:')) {
+      currentCustomerKey = col0.replace(/^customer:\s*/i, '').trim().toLowerCase();
+      if (!customerInvoices[currentCustomerKey]) {
+        customerInvoices[currentCustomerKey] = [];
+      }
+      continue;
+    }
+
+    if (col0.toLowerCase().startsWith('total due') || !col0) {
+      continue;
+    }
+
+    if (currentCustomerKey && row[1]) {
+      customerInvoices[currentCustomerKey].push({
+        date: col0,
+        invoiceNo: String(row[1] || '').trim(),
+        amount: String(row[2] || '0').trim(),
+        dueDays: String(row[5] || '0').trim(),
+      });
+    }
+  }
+
+  return customerInvoices;
+}
+
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST' && req.method !== 'GET') {
     return res.status(405).json({ success: false, error: 'Method Not Allowed' });
@@ -55,6 +106,7 @@ module.exports = async function handler(req, res) {
   const META_ACCESS_TOKEN = process.env.META_ACCESS_TOKEN;
   const PHONE_NUMBER_ID = '1228998570301220';
   const COMPANY_UPI_ID = '6306078257.1@hdfc';
+  const SUPPORT_LINK = 'www.upnonwovens.in';
   const STATIC_QR_IMAGE_URL = 'https://upnonwovens.in/upi_qr.jpg';
 
   let rawId = process.env.GOOGLE_SPREADSHEET_ID || '';
@@ -64,25 +116,32 @@ module.exports = async function handler(req, res) {
   if (!META_ACCESS_TOKEN || !spreadsheetId || !process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL) {
     return res.status(500).json({
       success: false,
-      error: 'Missing META_ACCESS_TOKEN, GOOGLE_SPREADSHEET_ID, or GOOGLE_SERVICE_ACCOUNT_EMAIL in environment variables.'
+      error: 'Missing META_ACCESS_TOKEN, GOOGLE_SPREADSHEET_ID, or GOOGLE_SERVICE_ACCOUNT_EMAIL.'
     });
   }
 
   try {
     const sheets = await getSheetsClient();
 
-    // Read range A:G from 'Payment Reminders'
-    // Row 0: CustomerPhone, CustomerName, TotalDue, OverdueDays, TemplateName, FrequencyDays, LastSentDate
-    const sheetResponse = await sheets.spreadsheets.values.get({
-      spreadsheetId,
-      range: "'Payment Reminders'!A:G",
-    });
+    const [remindersRes, fifoRes] = await Promise.all([
+      sheets.spreadsheets.values.get({
+        spreadsheetId,
+        range: "'Payment Reminders'!A:G",
+      }),
+      sheets.spreadsheets.values.get({
+        spreadsheetId,
+        range: "'Pending_Invoices_FIFO'!A:H",
+      })
+    ]);
 
-    const rows = sheetResponse.data.values || [];
+    const rows = remindersRes.data.values || [];
+    const fifoRows = fifoRes.data.values || [];
+
     if (rows.length < 2) {
-      return res.status(200).json({ success: true, message: 'No customer data found in Payment Reminders.' });
+      return res.status(200).json({ success: true, message: 'No customer records in Payment Reminders.' });
     }
 
+    const fifoMap = parseFifoInvoices(fifoRows);
     const todayStr = new Date().toISOString().split('T')[0];
     const results = [];
     const updateCells = [];
@@ -91,22 +150,21 @@ module.exports = async function handler(req, res) {
       const row = rows[i];
       const rawPhone = String(row[0] || '').replace(/\D/g, '');
       const customerName = row[1] ? String(row[1]).trim() : 'Valued Customer';
-      const totalDue = row[2] ? String(row[2]).trim() : '0';
+      const rawDue = row[2] ? String(row[2]).trim() : '0';
       const overdueDays = row[3] ? String(row[3]).trim() : '0';
       const templateToUse = row[4] ? String(row[4]).trim() : '';
       const frequencyDays = row[5] ? String(row[5]).trim() : '1';
       const lastSentDate = row[6] ? String(row[6]).trim() : '';
 
-      // Skip rows without a phone number or template name
       if (!rawPhone || !templateToUse) {
         continue;
       }
 
-      // Ensure 91 prefix for WhatsApp API
       const formattedPhone = rawPhone.length === 10 ? `91${rawPhone}` : rawPhone;
+      const numericDue = parseFloat(rawDue.replace(/,/g, '')) || 0;
+      const formattedTotalDue = numericDue.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
       const isDueForMessage = shouldSendReminder(lastSentDate, frequencyDays);
-
       if (!isDueForMessage) {
         results.push({
           phone: formattedPhone,
@@ -117,6 +175,81 @@ module.exports = async function handler(req, res) {
         continue;
       }
 
+      // Find itemized FIFO invoices for this customer
+      const lookupKeyWithPhone = `${customerName} (${formattedPhone})`.toLowerCase();
+      const lookupKeyNameOnly = customerName.toLowerCase();
+      const openInvoices = fifoMap[lookupKeyWithPhone] || fifoMap[lookupKeyNameOnly] || [];
+
+      // Format inline summary avoiding newline characters (Rule #132018)
+      const invoiceSummary = formatInvoicesInlineSummary(openInvoices);
+
+      let templatePayload;
+
+      // Matches the exact 5-parameter payload from whatsapp_service.py
+      if (templateToUse === 'customer_statement_dispatch') {
+        templatePayload = {
+          name: 'customer_statement_dispatch',
+          language: { code: 'en_US' },
+          components: [
+            {
+              type: 'body',
+              parameters: [
+                { type: 'text', text: cleanParam(customerName) },
+                { type: 'text', text: invoiceSummary },
+                { type: 'text', text: formattedTotalDue },
+                { type: 'text', text: cleanParam(SUPPORT_LINK) },
+                { type: 'text', text: cleanParam(COMPANY_UPI_ID) }
+              ]
+            }
+          ]
+        };
+      } else if (templateToUse === 'payment_due_notice') {
+        const oldestDays = openInvoices.reduce((max, inv) => Math.max(max, parseInt(inv.dueDays, 10) || 0), parseInt(overdueDays, 10) || 0);
+        templatePayload = {
+          name: 'payment_due_notice',
+          language: { code: 'en_US' },
+          components: [
+            {
+              type: 'body',
+              parameters: [
+                { type: 'text', text: cleanParam(customerName) },
+                { type: 'text', text: 'Krishna Solar Farms Pvt Ltd' },
+                { type: 'text', text: formattedTotalDue },
+                { type: 'text', text: String(oldestDays) },
+                { type: 'text', text: cleanParam(SUPPORT_LINK) },
+                { type: 'text', text: cleanParam(COMPANY_UPI_ID) }
+              ]
+            }
+          ]
+        };
+      } else {
+        // Fallback for legacy 4-variable template (outstanding_balance_reminder)
+        templatePayload = {
+          name: templateToUse,
+          language: { code: 'en_US' },
+          components: [
+            {
+              type: 'header',
+              parameters: [
+                {
+                  type: 'image',
+                  image: { link: STATIC_QR_IMAGE_URL }
+                }
+              ]
+            },
+            {
+              type: 'body',
+              parameters: [
+                { type: 'text', text: cleanParam(customerName) },
+                { type: 'text', text: formattedTotalDue },
+                { type: 'text', text: String(overdueDays) },
+                { type: 'text', text: COMPANY_UPI_ID }
+              ]
+            }
+          ]
+        };
+      }
+
       try {
         const metaResponse = await axios.post(
           `https://graph.facebook.com/v21.0/${PHONE_NUMBER_ID}/messages`,
@@ -125,32 +258,7 @@ module.exports = async function handler(req, res) {
             recipient_type: 'individual',
             to: formattedPhone,
             type: 'template',
-            template: {
-              name: templateToUse,
-              language: { code: 'en_US' },
-              components: [
-                {
-                  type: 'header',
-                  parameters: [
-                    {
-                      type: 'image',
-                      image: {
-                        link: STATIC_QR_IMAGE_URL
-                      }
-                    }
-                  ]
-                },
-                {
-                  type: 'body',
-                  parameters: [
-                    { type: 'text', text: customerName },
-                    { type: 'text', text: totalDue },
-                    { type: 'text', text: overdueDays },
-                    { type: 'text', text: COMPANY_UPI_ID }
-                  ]
-                }
-              ]
-            }
+            template: templatePayload
           },
           {
             headers: {
@@ -187,7 +295,6 @@ module.exports = async function handler(req, res) {
       }
     }
 
-    // Direct write to update LastSentDate for all sent reminders
     if (updateCells.length > 0) {
       try {
         await sheets.spreadsheets.values.batchUpdate({
@@ -198,7 +305,7 @@ module.exports = async function handler(req, res) {
           }
         });
       } catch (sheetErr) {
-        console.error('Failed to update LastSentDate via Sheets API:', sheetErr.message);
+        console.error('Failed to update LastSentDate in sheet:', sheetErr.message);
       }
     }
 
