@@ -2,12 +2,17 @@
 const { google } = require('googleapis');
 const axios = require('axios');
 
+function cleanParam(value) {
+  const text = String(value || '');
+  return text.replace(/[\r\n\t]+/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
 function normalizeKey(str) {
   if (!str) return '';
   return String(str)
     .toLowerCase()
     .replace(/^customer:\s*/i, '')
-    .replace(/\(\d+\)/g, '') // remove (919756237449)
+    .replace(/\(\d+\)/g, '') // remove phone numbers in parentheses
     .replace(/[^a-z0-9]/g, '') // keep alphanumeric only
     .trim();
 }
@@ -16,14 +21,18 @@ function formatInvoicesSummary(invoices) {
   if (!invoices || invoices.length === 0) {
     return '1. Ledger Dues • Amount Pending';
   }
-  // Up to 10 invoices formatted with clean single line breaks
-  return invoices.slice(0, 10).map((inv, idx) => {
+  
+  // Format up to 10 invoices on a single continuous inline string separated by " | "
+  // to strictly prevent Meta Error #132018
+  const items = invoices.slice(0, 10).map((inv, idx) => {
     const bDate = String(inv.date || '').substring(0, 10);
     const bNo = String(inv.invoiceNo || 'N/A').trim();
     const amt = inv.amount || '0';
     const days = inv.dueDays || '0';
     return `${idx + 1}. Inv #${bNo} (${bDate}) • ₹${amt} • ${days}d overdue`;
-  }).join('\n');
+  });
+
+  return cleanParam(items.join(' | '));
 }
 
 function shouldSendReminder(lastSentDateStr, frequencyDaysStr) {
@@ -75,7 +84,7 @@ function parseFifoInvoices(fifoRows) {
       continue;
     }
 
-    // Row layout: [Inv. Date, Invoice No., Amount (Rs.), Due Date, Date (As on), Due Days, Party / Phone, Status]
+    // Row: [Inv. Date, Invoice No., Amount (Rs.), Due Date, Date (As on), Due Days, Party / Phone, Status]
     if (currentKey && row[1]) {
       customerInvoices[currentKey].push({
         date: col0,
@@ -181,7 +190,7 @@ module.exports = async function handler(req, res) {
         continue;
       }
 
-      // Exact normalized name lookup
+      // Exact normalized name lookup from Pending_Invoices_FIFO
       const lookupKey = normalizeKey(customerName);
       const openInvoices = fifoMap[lookupKey] || [];
       const invoiceSummary = formatInvoicesSummary(openInvoices);
@@ -196,11 +205,11 @@ module.exports = async function handler(req, res) {
             {
               type: 'body',
               parameters: [
-                { type: 'text', text: customerName },
+                { type: 'text', text: cleanParam(customerName) },
                 { type: 'text', text: invoiceSummary },
-                { type: 'text', text: formattedTotalDue },
-                { type: 'text', text: SUPPORT_LINK },
-                { type: 'text', text: COMPANY_UPI_ID }
+                { type: 'text', text: cleanParam(formattedTotalDue) },
+                { type: 'text', text: cleanParam(SUPPORT_LINK) },
+                { type: 'text', text: cleanParam(COMPANY_UPI_ID) }
               ]
             }
           ]
@@ -214,12 +223,12 @@ module.exports = async function handler(req, res) {
             {
               type: 'body',
               parameters: [
-                { type: 'text', text: customerName },
+                { type: 'text', text: cleanParam(customerName) },
                 { type: 'text', text: 'KSF Non-Woven Fabric' },
-                { type: 'text', text: formattedTotalDue },
+                { type: 'text', text: cleanParam(formattedTotalDue) },
                 { type: 'text', text: String(oldestDays) },
-                { type: 'text', text: SUPPORT_LINK },
-                { type: 'text', text: COMPANY_UPI_ID }
+                { type: 'text', text: cleanParam(SUPPORT_LINK) },
+                { type: 'text', text: cleanParam(COMPANY_UPI_ID) }
               ]
             }
           ]
@@ -237,10 +246,10 @@ module.exports = async function handler(req, res) {
             {
               type: 'body',
               parameters: [
-                { type: 'text', text: customerName },
-                { type: 'text', text: formattedTotalDue },
+                { type: 'text', text: cleanParam(customerName) },
+                { type: 'text', text: cleanParam(formattedTotalDue) },
                 { type: 'text', text: String(overdueDays) },
-                { type: 'text', text: COMPANY_UPI_ID }
+                { type: 'text', text: cleanParam(COMPANY_UPI_ID) }
               ]
             }
           ]
