@@ -1,29 +1,10 @@
 // api/send-reminder.js
+const { google } = require('googleapis');
 const axios = require('axios');
-
-function parseCSVLine(text) {
-  const result = [];
-  let current = '';
-  let inQuotes = false;
-
-  for (let i = 0; i < text.length; i++) {
-    const char = text[i];
-    if (char === '"') {
-      inQuotes = !inQuotes;
-    } else if (char === ',' && !inQuotes) {
-      result.push(current.trim().replace(/^"|"$/g, ''));
-      current = '';
-    } else {
-      current += char;
-    }
-  }
-  result.push(current.trim().replace(/^"|"$/g, ''));
-  return result;
-}
 
 function shouldSendReminder(lastSentDateStr, frequencyDaysStr) {
   const frequencyDays = parseInt(frequencyDaysStr, 10) || 1;
-  if (!lastSentDateStr || lastSentDateStr.trim() === '') {
+  if (!lastSentDateStr || String(lastSentDateStr).trim() === '') {
     return true;
   }
 
@@ -37,6 +18,18 @@ function shouldSendReminder(lastSentDateStr, frequencyDaysStr) {
   const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
   return diffDays >= frequencyDays;
+}
+
+async function getSheetsClient() {
+  const privateKey = (process.env.GOOGLE_PRIVATE_KEY || '').replace(/\\n/g, '\n');
+  const auth = new google.auth.GoogleAuth({
+    credentials: {
+      client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
+      private_key: privateKey,
+    },
+    scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+  });
+  return google.sheets({ version: 'v4', auth });
 }
 
 module.exports = async function handler(req, res) {
@@ -61,59 +54,65 @@ module.exports = async function handler(req, res) {
 
   const META_ACCESS_TOKEN = process.env.META_ACCESS_TOKEN;
   const PHONE_NUMBER_ID = '1228998570301220';
-  const SHEET_CSV_URL = process.env.GOOGLE_SHEET_CSV_URL;
   const COMPANY_UPI_ID = '6306078257.1@hdfc';
   const STATIC_QR_IMAGE_URL = 'https://upnonwovens.in/upi_qr.jpg';
-  const APPS_SCRIPT_URL = process.env.APPS_SCRIPT_WEBAPP_URL;
 
-  if (!META_ACCESS_TOKEN || !SHEET_CSV_URL) {
+  let rawId = process.env.GOOGLE_SPREADSHEET_ID || '';
+  const urlMatch = rawId.match(/\/d\/([a-zA-Z0-9-_]+)/);
+  const spreadsheetId = (urlMatch ? urlMatch[1] : rawId).trim().replace(/['"]/g, '');
+
+  if (!META_ACCESS_TOKEN || !spreadsheetId || !process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL) {
     return res.status(500).json({
       success: false,
-      error: 'Missing META_ACCESS_TOKEN or GOOGLE_SHEET_CSV_URL'
+      error: 'Missing META_ACCESS_TOKEN, GOOGLE_SPREADSHEET_ID, or GOOGLE_SERVICE_ACCOUNT_EMAIL in environment variables.'
     });
   }
 
   try {
-    const sheetResponse = await axios.get(SHEET_CSV_URL);
-    const rawRows = sheetResponse.data.split(/\r?\n/).filter(line => line.trim() !== '');
+    const sheets = await getSheetsClient();
 
-    if (rawRows.length < 2) {
-      return res.status(200).json({ success: true, message: 'Google Sheet is empty.' });
-    }
-
-    const headers = parseCSVLine(rawRows[0]);
-    const records = rawRows.slice(1).map(row => {
-      const values = parseCSVLine(row);
-      const entry = {};
-      headers.forEach((header, index) => {
-        entry[header] = values[index] ? values[index].trim() : '';
-      });
-      return entry;
+    // Read range A:G from 'Payment Reminders'
+    // Row 0: CustomerPhone, CustomerName, TotalDue, OverdueDays, TemplateName, FrequencyDays, LastSentDate
+    const sheetResponse = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: "'Payment Reminders'!A:G",
     });
 
-    const unpaidList = records.filter(
-      r => r.Status && r.Status.toLowerCase() === 'unpaid' && r.CustomerPhone
-    );
+    const rows = sheetResponse.data.values || [];
+    if (rows.length < 2) {
+      return res.status(200).json({ success: true, message: 'No customer data found in Payment Reminders.' });
+    }
 
+    const todayStr = new Date().toISOString().split('T')[0];
     const results = [];
+    const updateCells = [];
 
-    for (const customer of unpaidList) {
-      const customerName = customer.CustomerName || 'Valued Customer';
-      const totalDue = customer.TotalDue || customer.Amount || '0';
-      const overdueDays = customer.OverdueDays || customer.DueDays || '0';
+    for (let i = 1; i < rows.length; i++) {
+      const row = rows[i];
+      const rawPhone = String(row[0] || '').replace(/\D/g, '');
+      const customerName = row[1] ? String(row[1]).trim() : 'Valued Customer';
+      const totalDue = row[2] ? String(row[2]).trim() : '0';
+      const overdueDays = row[3] ? String(row[3]).trim() : '0';
+      const templateToUse = row[4] ? String(row[4]).trim() : '';
+      const frequencyDays = row[5] ? String(row[5]).trim() : '1';
+      const lastSentDate = row[6] ? String(row[6]).trim() : '';
 
-      const templateToUse = customer.TemplateName && customer.TemplateName.trim() !== ''
-        ? customer.TemplateName.trim()
-        : 'outstanding_balance_reminder';
+      // Skip rows without a phone number or template name
+      if (!rawPhone || !templateToUse) {
+        continue;
+      }
 
-      const isDueForMessage = shouldSendReminder(customer.LastSentDate, customer.FrequencyDays);
+      // Ensure 91 prefix for WhatsApp API
+      const formattedPhone = rawPhone.length === 10 ? `91${rawPhone}` : rawPhone;
+
+      const isDueForMessage = shouldSendReminder(lastSentDate, frequencyDays);
 
       if (!isDueForMessage) {
         results.push({
-          phone: customer.CustomerPhone,
+          phone: formattedPhone,
           customer: customerName,
           status: 'SKIPPED_COOLDOWN',
-          reason: `Frequency cooldown active (${customer.FrequencyDays || 1} day gap). Last sent: ${customer.LastSentDate}`
+          reason: `Frequency cooldown active (${frequencyDays} day gap). Last sent: ${lastSentDate}`
         });
         continue;
       }
@@ -124,7 +123,7 @@ module.exports = async function handler(req, res) {
           {
             messaging_product: 'whatsapp',
             recipient_type: 'individual',
-            to: customer.CustomerPhone,
+            to: formattedPhone,
             type: 'template',
             template: {
               name: templateToUse,
@@ -145,8 +144,8 @@ module.exports = async function handler(req, res) {
                   type: 'body',
                   parameters: [
                     { type: 'text', text: customerName },
-                    { type: 'text', text: String(totalDue) },
-                    { type: 'text', text: String(overdueDays) },
+                    { type: 'text', text: totalDue },
+                    { type: 'text', text: overdueDays },
                     { type: 'text', text: COMPANY_UPI_ID }
                   ]
                 }
@@ -161,39 +160,25 @@ module.exports = async function handler(req, res) {
           }
         );
 
-        // Update the sheet with today's date via GET call to bypass Google 302 body-stripping
-        let sheetUpdated = false;
-        let sheetError = null;
-
-        if (APPS_SCRIPT_URL) {
-          try {
-            const scriptRes = await axios.get(
-              `${APPS_SCRIPT_URL}?phone=${encodeURIComponent(customer.CustomerPhone)}`,
-              { timeout: 8000 }
-            );
-            sheetUpdated = scriptRes.data?.updated || false;
-            if (!sheetUpdated && scriptRes.data?.error) {
-              sheetError = scriptRes.data.error;
-            }
-          } catch (scriptErr) {
-            sheetError = scriptErr.message;
-            console.error('Failed to update LastSentDate in sheet:', scriptErr.message);
-          }
-        }
+        const rowNumber = i + 1;
+        updateCells.push({
+          range: `'Payment Reminders'!G${rowNumber}`,
+          values: [[todayStr]]
+        });
 
         results.push({
-          phone: customer.CustomerPhone,
+          phone: formattedPhone,
           customer: customerName,
           template: templateToUse,
           status: 'SENT',
-          sheetUpdated: sheetUpdated,
-          sheetError: sheetError,
-          messageId: metaResponse.data.messages[0].id
+          sheetUpdated: true,
+          messageId: metaResponse.data.messages?.[0]?.id || ''
         });
       } catch (sendError) {
         const errorData = sendError.response ? sendError.response.data : { message: sendError.message };
+        console.error(`Failed to send reminder to ${formattedPhone}:`, errorData);
         results.push({
-          phone: customer.CustomerPhone,
+          phone: formattedPhone,
           customer: customerName,
           template: templateToUse,
           status: 'FAILED',
@@ -202,9 +187,24 @@ module.exports = async function handler(req, res) {
       }
     }
 
+    // Direct write to update LastSentDate for all sent reminders
+    if (updateCells.length > 0) {
+      try {
+        await sheets.spreadsheets.values.batchUpdate({
+          spreadsheetId,
+          requestBody: {
+            valueInputOption: 'USER_ENTERED',
+            data: updateCells
+          }
+        });
+      } catch (sheetErr) {
+        console.error('Failed to update LastSentDate via Sheets API:', sheetErr.message);
+      }
+    }
+
     return res.status(200).json({
       success: true,
-      totalUnpaid: unpaidList.length,
+      totalUnpaid: results.length,
       processed: results
     });
   } catch (error) {
