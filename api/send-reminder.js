@@ -12,8 +12,8 @@ function normalizeKey(str) {
   return String(str)
     .toLowerCase()
     .replace(/^customer:\s*/i, '')
-    .replace(/\(\d+\)/g, '') // remove phone numbers in parentheses
-    .replace(/[^a-z0-9]/g, '') // keep alphanumeric only
+    .replace(/\(\d+\)/g, '')
+    .replace(/[^a-z0-9]/g, '')
     .trim();
 }
 
@@ -22,8 +22,7 @@ function formatInvoicesSummary(invoices) {
     return '1. Ledger Dues • Amount Pending';
   }
   
-  // Format up to 10 invoices on a single continuous inline string separated by " | "
-  // to strictly prevent Meta Error #132018
+  // Format invoices on a single continuous inline string to comply with Meta #132018
   const items = invoices.slice(0, 10).map((inv, idx) => {
     const bDate = String(inv.date || '').substring(0, 10);
     const bNo = String(inv.invoiceNo || 'N/A').trim();
@@ -84,7 +83,6 @@ function parseFifoInvoices(fifoRows) {
       continue;
     }
 
-    // Row: [Inv. Date, Invoice No., Amount (Rs.), Due Date, Date (As on), Due Days, Party / Phone, Status]
     if (currentKey && row[1]) {
       customerInvoices[currentKey].push({
         date: col0,
@@ -167,17 +165,19 @@ module.exports = async function handler(req, res) {
       const customerName = row[1] ? String(row[1]).trim() : 'Valued Customer';
       const rawDue = row[2] ? String(row[2]).trim() : '0';
       const overdueDays = row[3] ? String(row[3]).trim() : '0';
-      const templateToUse = row[4] ? String(row[4]).trim() : '';
+      const templateToUse = (row[4] ? String(row[4]).trim() : '') || 'ksf_statement';
       const frequencyDays = row[5] ? String(row[5]).trim() : '1';
       const lastSentDate = row[6] ? String(row[6]).trim() : '';
 
-      if (!rawPhone || !templateToUse) {
+      // Skip row if customer phone is missing or template was explicitly removed
+      if (!rawPhone || !row[4]) {
         continue;
       }
 
       const formattedPhone = rawPhone.length === 10 ? `91${rawPhone}` : rawPhone;
       const numericDue = parseFloat(rawDue.replace(/,/g, '')) || 0;
       const formattedTotalDue = numericDue.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      const rawDueParam = numericDue.toFixed(2);
 
       const isDueForMessage = shouldSendReminder(lastSentDate, frequencyDays);
       if (!isDueForMessage) {
@@ -190,16 +190,41 @@ module.exports = async function handler(req, res) {
         continue;
       }
 
-      // Exact normalized name lookup from Pending_Invoices_FIFO
       const lookupKey = normalizeKey(customerName);
       const openInvoices = fifoMap[lookupKey] || [];
       const invoiceSummary = formatInvoicesSummary(openInvoices);
 
       let templatePayload;
 
-      if (templateToUse === 'customer_statement_dispatch' || templateToUse === 'ksf_statement_v2') {
+      // ksf_statement with Dynamic Pay via UPI Button
+      if (templateToUse === 'ksf_statement' || templateToUse === 'ksf_statement_v2') {
         templatePayload = {
-          name: templateToUse,
+          name: 'ksf_statement',
+          language: { code: 'en_US' },
+          components: [
+            {
+              type: 'body',
+              parameters: [
+                { type: 'text', text: cleanParam(customerName) },
+                { type: 'text', text: invoiceSummary },
+                { type: 'text', text: cleanParam(formattedTotalDue) },
+                { type: 'text', text: cleanParam(SUPPORT_LINK) },
+                { type: 'text', text: cleanParam(COMPANY_UPI_ID) }
+              ]
+            },
+            {
+              type: 'button',
+              sub_type: 'url',
+              index: '0',
+              parameters: [
+                { type: 'text', text: rawDueParam }
+              ]
+            }
+          ]
+        };
+      } else if (templateToUse === 'customer_statement_dispatch') {
+        templatePayload = {
+          name: 'customer_statement_dispatch',
           language: { code: 'en_US' },
           components: [
             {
@@ -234,7 +259,7 @@ module.exports = async function handler(req, res) {
           ]
         };
       } else {
-        // Fallback for legacy 4-variable template
+        // Fallback for legacy template
         templatePayload = {
           name: templateToUse,
           language: { code: 'en_US' },
@@ -249,7 +274,7 @@ module.exports = async function handler(req, res) {
                 { type: 'text', text: cleanParam(customerName) },
                 { type: 'text', text: cleanParam(formattedTotalDue) },
                 { type: 'text', text: String(overdueDays) },
-                { type: 'text', text: cleanParam(COMPANY_UPI_ID) }
+                { type: 'text', text: COMPANY_UPI_ID }
               ]
             }
           ]
