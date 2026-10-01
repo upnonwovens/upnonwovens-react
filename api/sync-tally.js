@@ -50,12 +50,18 @@ module.exports = async function handler(req, res) {
       }
     }
 
-    const customerBlocks = parseTallyOutstandingsBuffer(fileBuffer);
-    const syncResult = await syncTallyDataToSheets(customerBlocks);
+    // Parse both active operating debtors and dormant legacy overdue debtors
+    const parsedData = parseTallyOutstandingsBuffer(fileBuffer);
+    const syncResult = await syncTallyDataToSheets(parsedData);
+
+    const activeCount = syncResult.activeCustomersCount || 0;
+    const dormantCount = syncResult.dormantCustomersCount || 0;
+    const activeReminders = syncResult.activeReminders || 0;
+    const dormantReminders = syncResult.dormantReminders || 0;
 
     return res.status(200).json({
       success: true,
-      message: `Parsed ${syncResult.totalCustomers} customers. Updated ${syncResult.activeReminders} accounts in Payment Reminders.`,
+      message: `Parsed ${activeCount} active customers (${activeReminders} reminders) and ${dormantCount} dormant overdue accounts (${dormantReminders} reminders) across 4 tabs.`,
       ...syncResult
     });
   } catch (error) {
