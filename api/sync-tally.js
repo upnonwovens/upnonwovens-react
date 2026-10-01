@@ -17,7 +17,6 @@ module.exports = async function handler(req, res) {
       return res.status(400).json({ error: 'No file uploaded or file is empty' });
     }
 
-    // Extract the raw file buffer from the multipart/form-data payload
     let fileBuffer = rawBuffer;
     const boundaryHeader = req.headers['content-type'];
     if (boundaryHeader && boundaryHeader.includes('boundary=')) {
@@ -38,7 +37,6 @@ module.exports = async function handler(req, res) {
         if (headerEnd !== -1) {
           const headerStr = part.slice(0, headerEnd).toString('utf-8');
           if (headerStr.includes('filename=')) {
-            // Strip trailing CRLF
             let dataSlice = part.slice(headerEnd + 4);
             if (dataSlice.slice(-2).toString() === '\r\n') {
               dataSlice = dataSlice.slice(0, -2);
@@ -50,7 +48,6 @@ module.exports = async function handler(req, res) {
       }
     }
 
-    // Parse both active operating debtors and dormant legacy overdue debtors
     const parsedData = parseTallyOutstandingsBuffer(fileBuffer);
     const syncResult = await syncTallyDataToSheets(parsedData);
 
