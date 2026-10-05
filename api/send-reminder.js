@@ -17,19 +17,24 @@ function normalizeKey(str) {
     .trim();
 }
 
-function formatInvoicesSummary(invoices) {
-  if (!invoices || invoices.length === 0) {
-    return '1. Ledger Dues • Amount Pending';
+function formatInvoicesSummary(invoices, lastPaymentInfo) {
+  const items = [];
+  if (invoices && invoices.length > 0) {
+    invoices.slice(0, 10).forEach((inv, idx) => {
+      const bDate = String(inv.date || '').substring(0, 10);
+      const bNo = String(inv.invoiceNo || 'N/A').trim();
+      const amt = inv.amount || '0';
+      const days = inv.dueDays || '0';
+      items.push(`${idx + 1}. Inv #${bNo} (${bDate}) • ₹${amt} • ${days}d overdue`);
+    });
+  } else {
+    items.push('1. Ledger Dues • Amount Pending');
   }
-  
-  // Format invoices on a single continuous inline string to comply with Meta #132018
-  const items = invoices.slice(0, 10).map((inv, idx) => {
-    const bDate = String(inv.date || '').substring(0, 10);
-    const bNo = String(inv.invoiceNo || 'N/A').trim();
-    const amt = inv.amount || '0';
-    const days = inv.dueDays || '0';
-    return `${idx + 1}. Inv #${bNo} (${bDate}) • ₹${amt} • ${days}d overdue`;
-  });
+
+  // Append Last Payment Received right after invoice list
+  if (lastPaymentInfo && String(lastPaymentInfo).trim() !== '') {
+    items.push(`Last Payment Received: ${cleanParam(lastPaymentInfo)}`);
+  }
 
   return cleanParam(items.join(' | '));
 }
@@ -79,7 +84,7 @@ function parseFifoInvoices(fifoRows) {
       continue;
     }
 
-    if (col0.toLowerCase().startsWith('total due') || !col0) {
+    if (col0.toLowerCase().startsWith('total due') || col0.toLowerCase().startsWith('last payment') || !col0) {
       continue;
     }
 
@@ -109,10 +114,7 @@ module.exports = async function handler(req, res) {
     const isValidQuery = querySecret === process.env.CRON_SECRET;
 
     if (!isValidCron && !isValidQuery) {
-      return res.status(401).json({
-        success: false,
-        error: 'Unauthorized trigger.'
-      });
+      return res.status(401).json({ success: false, error: 'Unauthorized trigger.' });
     }
   }
 
@@ -136,196 +138,184 @@ module.exports = async function handler(req, res) {
   try {
     const sheets = await getSheetsClient();
 
-    const [remindersRes, fifoRes] = await Promise.all([
-      sheets.spreadsheets.values.get({
-        spreadsheetId,
-        range: "'Payment Reminders'!A:G",
-      }),
-      sheets.spreadsheets.values.get({
-        spreadsheetId,
-        range: "'Pending_Invoices_FIFO'!A:H",
-      })
+    // Fetch both Active and Dormant datasets concurrently
+    const [remindersRes, fifoRes, dormantRemindersRes, dormantFifoRes] = await Promise.all([
+      sheets.spreadsheets.values.get({ spreadsheetId, range: "'Payment Reminders'!A:H" }).catch(() => ({ data: { values: [] } })),
+      sheets.spreadsheets.values.get({ spreadsheetId, range: "'Pending_Invoices_FIFO'!A:H" }).catch(() => ({ data: { values: [] } })),
+      sheets.spreadsheets.values.get({ spreadsheetId, range: "'Dormant Payment Reminders'!A:H" }).catch(() => ({ data: { values: [] } })),
+      sheets.spreadsheets.values.get({ spreadsheetId, range: "'Dormant_Overdue_Debtors'!A:H" }).catch(() => ({ data: { values: [] } }))
     ]);
 
-    const rows = remindersRes.data.values || [];
-    const fifoRows = fifoRes.data.values || [];
+    const activeRows = remindersRes.data.values || [];
+    const activeFifo = fifoRes.data.values || [];
+    const dormantRows = dormantRemindersRes.data.values || [];
+    const dormantFifo = dormantFifoRes.data.values || [];
 
-    if (rows.length < 2) {
-      return res.status(200).json({ success: true, message: 'No customer records in Payment Reminders.' });
-    }
+    const activeMap = parseFifoInvoices(activeFifo);
+    const dormantMap = parseFifoInvoices(dormantFifo);
+    const combinedFifoMap = { ...dormantMap, ...activeMap };
 
-    const fifoMap = parseFifoInvoices(fifoRows);
     const todayStr = new Date().toISOString().split('T')[0];
     const results = [];
     const updateCells = [];
 
-    for (let i = 1; i < rows.length; i++) {
-      const row = rows[i];
-      const rawPhone = String(row[0] || '').replace(/\D/g, '');
-      const customerName = row[1] ? String(row[1]).trim() : 'Valued Customer';
-      const rawDue = row[2] ? String(row[2]).trim() : '0';
-      const overdueDays = row[3] ? String(row[3]).trim() : '0';
-      const templateToUse = (row[4] ? String(row[4]).trim() : '') || 'ksf_statement';
-      const frequencyDays = row[5] ? String(row[5]).trim() : '1';
-      const lastSentDate = row[6] ? String(row[6]).trim() : '';
+    // Queue processor for reminder lists
+    const processQueue = async (rows, sheetTabName, defaultFreq) => {
+      for (let i = 1; i < rows.length; i++) {
+        const row = rows[i];
+        const rawPhone = String(row[0] || '').replace(/\D/g, '');
+        const customerName = row[1] ? String(row[1]).trim() : 'Valued Customer';
+        const rawDue = row[2] ? String(row[2]).trim() : '0';
+        const overdueDays = row[3] ? String(row[3]).trim() : '0';
+        const templateToUse = (row[4] ? String(row[4]).trim() : '') || 'ksf_statement';
+        const frequencyDays = row[5] ? String(row[5]).trim() : defaultFreq;
+        const lastSentDate = row[6] ? String(row[6]).trim() : '';
+        const lastPaymentInfo = row[7] ? String(row[7]).trim() : '';
 
-      // Skip row if customer phone is missing or template was explicitly removed
-      if (!rawPhone || !row[4]) {
-        continue;
-      }
+        if (!rawPhone || !row[4]) continue;
 
-      const formattedPhone = rawPhone.length === 10 ? `91${rawPhone}` : rawPhone;
-      const numericDue = parseFloat(rawDue.replace(/,/g, '')) || 0;
-      const formattedTotalDue = numericDue.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-      const rawDueParam = numericDue.toFixed(2);
+        const formattedPhone = rawPhone.length === 10 ? `91${rawPhone}` : rawPhone;
+        const numericDue = parseFloat(rawDue.replace(/,/g, '')) || 0;
+        const formattedTotalDue = numericDue.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        const rawDueParam = numericDue.toFixed(2);
 
-      const isDueForMessage = shouldSendReminder(lastSentDate, frequencyDays);
-      if (!isDueForMessage) {
-        results.push({
-          phone: formattedPhone,
-          customer: customerName,
-          status: 'SKIPPED_COOLDOWN',
-          reason: `Frequency cooldown active (${frequencyDays} day gap). Last sent: ${lastSentDate}`
-        });
-        continue;
-      }
+        if (!shouldSendReminder(lastSentDate, frequencyDays)) {
+          results.push({
+            sheet: sheetTabName,
+            phone: formattedPhone,
+            customer: customerName,
+            status: 'SKIPPED_COOLDOWN',
+            reason: `Frequency cooldown active (${frequencyDays}d). Last sent: ${lastSentDate}`
+          });
+          continue;
+        }
 
-      const lookupKey = normalizeKey(customerName);
-      const openInvoices = fifoMap[lookupKey] || [];
-      const invoiceSummary = formatInvoicesSummary(openInvoices);
+        const lookupKey = normalizeKey(customerName);
+        const openInvoices = combinedFifoMap[lookupKey] || [];
+        const invoiceSummary = formatInvoicesSummary(openInvoices, lastPaymentInfo);
 
-      let templatePayload;
+        let templatePayload;
 
-      // ksf_statement with Dynamic Pay via UPI Button
-      if (templateToUse === 'ksf_statement' || templateToUse === 'ksf_statement_v2') {
-        templatePayload = {
-          name: 'ksf_statement',
-          language: { code: 'en_US' },
-          components: [
+        if (templateToUse === 'ksf_statement' || templateToUse === 'ksf_statement_v2') {
+          templatePayload = {
+            name: 'ksf_statement',
+            language: { code: 'en_US' },
+            components: [
+              {
+                type: 'body',
+                parameters: [
+                  { type: 'text', text: cleanParam(customerName) },
+                  { type: 'text', text: invoiceSummary },
+                  { type: 'text', text: cleanParam(formattedTotalDue) },
+                  { type: 'text', text: cleanParam(SUPPORT_LINK) },
+                  { type: 'text', text: cleanParam(COMPANY_UPI_ID) }
+                ]
+              },
+              {
+                type: 'button',
+                sub_type: 'url',
+                index: '0',
+                parameters: [{ type: 'text', text: rawDueParam }]
+              }
+            ]
+          };
+        } else if (templateToUse === 'customer_statement_dispatch') {
+          templatePayload = {
+            name: 'customer_statement_dispatch',
+            language: { code: 'en_US' },
+            components: [
+              {
+                type: 'body',
+                parameters: [
+                  { type: 'text', text: cleanParam(customerName) },
+                  { type: 'text', text: invoiceSummary },
+                  { type: 'text', text: cleanParam(formattedTotalDue) },
+                  { type: 'text', text: cleanParam(SUPPORT_LINK) },
+                  { type: 'text', text: cleanParam(COMPANY_UPI_ID) }
+                ]
+              }
+            ]
+          };
+        } else {
+          // Fallback legacy template
+          templatePayload = {
+            name: templateToUse,
+            language: { code: 'en_US' },
+            components: [
+              {
+                type: 'header',
+                parameters: [{ type: 'image', image: { link: STATIC_QR_IMAGE_URL } }]
+              },
+              {
+                type: 'body',
+                parameters: [
+                  { type: 'text', text: cleanParam(customerName) },
+                  { type: 'text', text: cleanParam(formattedTotalDue) },
+                  { type: 'text', text: String(overdueDays) },
+                  { type: 'text', text: COMPANY_UPI_ID }
+                ]
+              }
+            ]
+          };
+        }
+
+        try {
+          const metaResponse = await axios.post(
+            `https://graph.facebook.com/v21.0/${PHONE_NUMBER_ID}/messages`,
             {
-              type: 'body',
-              parameters: [
-                { type: 'text', text: cleanParam(customerName) },
-                { type: 'text', text: invoiceSummary },
-                { type: 'text', text: cleanParam(formattedTotalDue) },
-                { type: 'text', text: cleanParam(SUPPORT_LINK) },
-                { type: 'text', text: cleanParam(COMPANY_UPI_ID) }
-              ]
+              messaging_product: 'whatsapp',
+              recipient_type: 'individual',
+              to: formattedPhone,
+              type: 'template',
+              template: templatePayload
             },
             {
-              type: 'button',
-              sub_type: 'url',
-              index: '0',
-              parameters: [
-                { type: 'text', text: rawDueParam }
-              ]
+              headers: {
+                Authorization: `Bearer ${META_ACCESS_TOKEN}`,
+                'Content-Type': 'application/json'
+              }
             }
-          ]
-        };
-      } else if (templateToUse === 'customer_statement_dispatch') {
-        templatePayload = {
-          name: 'customer_statement_dispatch',
-          language: { code: 'en_US' },
-          components: [
-            {
-              type: 'body',
-              parameters: [
-                { type: 'text', text: cleanParam(customerName) },
-                { type: 'text', text: invoiceSummary },
-                { type: 'text', text: cleanParam(formattedTotalDue) },
-                { type: 'text', text: cleanParam(SUPPORT_LINK) },
-                { type: 'text', text: cleanParam(COMPANY_UPI_ID) }
-              ]
-            }
-          ]
-        };
-      } else if (templateToUse === 'payment_due_notice') {
-        const oldestDays = openInvoices.reduce((max, inv) => Math.max(max, parseInt(inv.dueDays, 10) || 0), parseInt(overdueDays, 10) || 0);
-        templatePayload = {
-          name: 'payment_due_notice',
-          language: { code: 'en_US' },
-          components: [
-            {
-              type: 'body',
-              parameters: [
-                { type: 'text', text: cleanParam(customerName) },
-                { type: 'text', text: 'KSF Non-Woven Fabric' },
-                { type: 'text', text: cleanParam(formattedTotalDue) },
-                { type: 'text', text: String(oldestDays) },
-                { type: 'text', text: cleanParam(SUPPORT_LINK) },
-                { type: 'text', text: cleanParam(COMPANY_UPI_ID) }
-              ]
-            }
-          ]
-        };
-      } else {
-        // Fallback for legacy template
-        templatePayload = {
-          name: templateToUse,
-          language: { code: 'en_US' },
-          components: [
-            {
-              type: 'header',
-              parameters: [{ type: 'image', image: { link: STATIC_QR_IMAGE_URL } }]
-            },
-            {
-              type: 'body',
-              parameters: [
-                { type: 'text', text: cleanParam(customerName) },
-                { type: 'text', text: cleanParam(formattedTotalDue) },
-                { type: 'text', text: String(overdueDays) },
-                { type: 'text', text: COMPANY_UPI_ID }
-              ]
-            }
-          ]
-        };
+          );
+
+          const rowNumber = i + 1;
+          updateCells.push({
+            range: `'${sheetTabName}'!G${rowNumber}`,
+            values: [[todayStr]]
+          });
+
+          results.push({
+            sheet: sheetTabName,
+            phone: formattedPhone,
+            customer: customerName,
+            template: templateToUse,
+            status: 'SENT',
+            messageId: metaResponse.data.messages?.[0]?.id || ''
+          });
+        } catch (sendError) {
+          const errorData = sendError.response ? sendError.response.data : { message: sendError.message };
+          console.error(`Failed to send to ${formattedPhone} (${sheetTabName}):`, errorData);
+          results.push({
+            sheet: sheetTabName,
+            phone: formattedPhone,
+            customer: customerName,
+            status: 'FAILED',
+            error: errorData
+          });
+        }
       }
+    };
 
-      try {
-        const metaResponse = await axios.post(
-          `https://graph.facebook.com/v21.0/${PHONE_NUMBER_ID}/messages`,
-          {
-            messaging_product: 'whatsapp',
-            recipient_type: 'individual',
-            to: formattedPhone,
-            type: 'template',
-            template: templatePayload
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${META_ACCESS_TOKEN}`,
-              'Content-Type': 'application/json'
-            }
-          }
-        );
-
-        const rowNumber = i + 1;
-        updateCells.push({
-          range: `'Payment Reminders'!G${rowNumber}`,
-          values: [[todayStr]]
-        });
-
-        results.push({
-          phone: formattedPhone,
-          customer: customerName,
-          template: templateToUse,
-          status: 'SENT',
-          sheetUpdated: true,
-          messageId: metaResponse.data.messages?.[0]?.id || ''
-        });
-      } catch (sendError) {
-        const errorData = sendError.response ? sendError.response.data : { message: sendError.message };
-        console.error(`Failed to send reminder to ${formattedPhone}:`, errorData);
-        results.push({
-          phone: formattedPhone,
-          customer: customerName,
-          template: templateToUse,
-          status: 'FAILED',
-          error: errorData
-        });
-      }
+    // 1. Process Active Customers (3-day default)
+    if (activeRows.length > 1) {
+      await processQueue(activeRows, 'Payment Reminders', '3');
     }
 
+    // 2. Process Dormant Customers (7-day default)
+    if (dormantRows.length > 1) {
+      await processQueue(dormantRows, 'Dormant Payment Reminders', '7');
+    }
+
+    // Write back updated LastSentDate timestamps
     if (updateCells.length > 0) {
       try {
         await sheets.spreadsheets.values.batchUpdate({
@@ -336,17 +326,17 @@ module.exports = async function handler(req, res) {
           }
         });
       } catch (sheetErr) {
-        console.error('Failed to update LastSentDate in sheet:', sheetErr.message);
+        console.error('Failed to update LastSentDate:', sheetErr.message);
       }
     }
 
     return res.status(200).json({
       success: true,
-      totalUnpaid: results.length,
+      totalProcessed: results.length,
       processed: results
     });
   } catch (error) {
-    console.error('Batch Execution Error:', error.message);
+    console.error('Batch Dispatch Error:', error.message);
     return res.status(500).json({ success: false, error: error.message });
   }
 };
